@@ -1,0 +1,581 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario Predictivo - Dashboard</title>
+    <link rel="stylesheet" href="{% static 'inventario/css/styles.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-pills"></i>
+                <h1>Inventario Predictivo</h1>
+            </div>
+            <div class="user-info">
+                <div class="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-count">3</span>
+                </div>
+                <div class="user-profile">
+                    <img src="https://via.placeholder.com/40" alt="Usuario">
+                    <span>Admin Farmacia</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="nav-item active">
+                    <a href="#dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#inventario">
+                        <i class="fas fa-boxes"></i>
+                        <span>Inventario</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#prediccion">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Predicción</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#caducidad">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Caducidad</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#transferencias">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>Transferencias</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#empleados">
+                        <i class="fas fa-users"></i>
+                        <span>Empleados</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+            <div class="section-header">
+                <h2>Dashboard Principal</h2>
+                <div class="date-filter">
+                    <select>
+                        <option>Últimos 7 días</option>
+                        <option>Últimos 30 días</option>
+                        <option>Último mes</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.total_productos }}</h3>
+                        <p>Productos en Stock</p>
+                        <span class="stat-change positive">+5.2%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.stock_bajo }}</h3>
+                        <p>Stock Bajo</p>
+                        <span class="stat-change negative">+12</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.proximos_vencer }}</h3>
+                        <p>Próximos a Vencer</p>
+                        <span class="stat-change negative">+8</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>${{ stats.ventas_mes }}</h3>
+                        <p>Ventas del Mes</p>
+                        <span class="stat-change positive">+8.7%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts and Tables -->
+            <div class="dashboard-grid">
+                <div class="chart-container">
+                    <h3>Ventas por Mes</h3>
+                    <div class="chart-placeholder">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+                <div class="alerts-container">
+                    <h3>Alertas Recientes</h3>
+                    <div class="alerts-list">
+                        {% for alerta in alertas %}
+                        <div class="alert-item {{ alerta.tipo }}">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div class="alert-content">
+                                <p>{{ alerta.mensaje }}</p>
+                                <span>{{ alerta.tiempo }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Inventario Section -->
+        <section id="inventario" class="content-section">
+            <div class="section-header">
+                <h2>Gestión de Inventario</h2>
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Agregar Producto
+                </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-container">
+                <div class="filter-group">
+                    <input type="text" placeholder="Buscar producto..." class="search-input">
+                    <select class="filter-select">
+                        <option>Todas las categorías</option>
+                        <option>Analgésicos</option>
+                        <option>Antibióticos</option>
+                        <option>Vitaminas</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>Todos los proveedores</option>
+                        <option>Proveedor A</option>
+                        <option>Proveedor B</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Inventory Table -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Stock</th>
+                            <th>Precio</th>
+                            <th>Vencimiento</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventario %}
+                        <tr>
+                            <td>{{ item.producto.product_id }}</td>
+                            <td>{{ item.producto.nombre_producto }}</td>
+                            <td>{{ item.producto.clase }}</td>
+                            <td class="{% if item.stock < 20 %}stock-low{% endif %}">{{ item.stock }}</td>
+                            <td>${{ item.producto.precio_unitario }}</td>
+                            <td>{{ item.producto.fecha_vencimiento }}</td>
+                            <td>
+                                {% if item.stock < 20 %}
+                                <span class="status-badge warning">Stock Bajo</span>
+                                {% elif item.producto.fecha_vencimiento < today %}
+                                <span class="status-badge danger">Vencido</span>
+                                {% else %}
+                                <span class="status-badge success">Normal</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn-icon"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Predicción Section -->
+        <section id="prediccion" class="content-section">
+            <div class="section-header">
+                <h2>Predicción Inteligente</h2>
+                <button class="btn btn-secondary">Actualizar Predicciones</button>
+            </div>
+
+            <div class="prediction-grid">
+                <div class="prediction-card">
+                    <h3>Recomendaciones de Compra</h3>
+                    <div class="recommendation-list">
+                        <div class="recommendation-item">
+                            <div class="product-info">
+                                <h4>Paracetamol 500mg</h4>
+                                <p>Cantidad sugerida: 200 unidades</p>
+                                <p>Razón: Tendencia al alza + Stock bajo</p>
+                            </div>
+                            <div class="recommendation-actions">
+                                <button class="btn btn-success btn-sm">Aprobar</button>
+                                <button class="btn btn-outline btn-sm">Modificar</button>
+                            </div>
+                        </div>
+                        <div class="recommendation-item">
+                            <div class="product-info">
+                                <h4>Vitamina D 1000UI</h4>
+                                <p>Cantidad sugerida: 150 unidades</p>
+                                <p>Razón: Estacionalidad (invierno)</p>
+                            </div>
+                            <div class="recommendation-actions">
+                                <button class="btn btn-success btn-sm">Aprobar</button>
+                                <button class="btn btn-outline btn-sm">Modificar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="prediction-chart">
+                    <h3>Análisis de Tendencias</h3>
+                    <div class="chart-placeholder">
+                        <canvas id="trendsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Caducidad Section -->
+        <section id="caducidad" class="content-section">
+            <div class="section-header">
+                <h2>Gestión de Caducidad</h2>
+                <button class="btn btn-warning">Generar Ofertas</button>
+            </div>
+
+            <div class="expiry-grid">
+                <div class="expiry-alerts">
+                    <h3>Productos Próximos a Vencer</h3>
+                    <div class="expiry-list">
+                        <div class="expiry-item urgent">
+                            <div class="product-details">
+                                <h4>Ibuprofeno 400mg</h4>
+                                <p>Lote: IBU2024-08</p>
+                                <p>Vence: 2025-08-20 (15 días)</p>
+                                <p>Stock: 120 unidades</p>
+                            </div>
+                            <div class="expiry-actions">
+                                <button class="btn btn-warning btn-sm">Crear Oferta</button>
+                                <button class="btn btn-info btn-sm">Transferir</button>
+                            </div>
+                        </div>
+                        <div class="expiry-item warning">
+                            <div class="product-details">
+                                <h4>Amoxicilina 500mg</h4>
+                                <p>Lote: AMX2024-09</p>
+                                <p>Vence: 2025-09-15 (25 días)</p>
+                                <p>Stock: 80 unidades</p>
+                            </div>
+                            <div class="expiry-actions">
+                                <button class="btn btn-warning btn-sm">Crear Oferta</button>
+                                <button class="btn btn-info btn-sm">Transferir</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="offers-panel">
+                    <h3>Ofertas Activas</h3>
+                    <div class="offers-list">
+                        <div class="offer-item">
+                            <div class="offer-info">
+                                <h4>Ibuprofeno 400mg</h4>
+                                <p>Descuento: 30%</p>
+                                <p>Precio original: $3.20</p>
+                                <p>Precio oferta: $2.24</p>
+                            </div>
+                            <div class="offer-status">
+                                <span class="status-badge success">Activa</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Transferencias Section -->
+        <section id="transferencias" class="content-section">
+            <div class="section-header">
+                <h2>Transferencias entre Sucursales</h2>
+                <button class="btn btn-primary">Nueva Transferencia</button>
+            </div>
+
+            <div class="transfers-container">
+                <div class="transfer-form">
+                    <h3>Solicitar Transferencia</h3>
+                    <form class="form-grid">
+                        <div class="form-group">
+                            <label>Producto</label>
+                            <select class="form-control">
+                                <option>Seleccionar producto...</option>
+                                <option>Paracetamol 500mg</option>
+                                <option>Ibuprofeno 400mg</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Sucursal Origen</label>
+                            <select class="form-control">
+                                <option>Farmacia Central</option>
+                                <option>Farmacia Norte</option>
+                                <option>Farmacia Sur</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Sucursal Destino</label>
+                            <select class="form-control">
+                                <option>Farmacia Norte</option>
+                                <option>Farmacia Sur</option>
+                                <option>Farmacia Este</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Cantidad</label>
+                            <input type="number" class="form-control" placeholder="0">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Motivo</label>
+                            <textarea class="form-control" placeholder="Descripción del motivo..."></textarea>
+                        </div>
+                        <div class="form-actions full-width">
+                            <button type="submit" class="btn btn-primary">Solicitar Transferencia</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="transfers-history">
+                    <h3>Historial de Transferencias</h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Producto</th>
+                                    <th>Origen</th>
+                                    <th>Destino</th>
+                                    <th>Cantidad</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2025-06-19</td>
+                                    <td>Paracetamol 500mg</td>
+                                    <td>Farmacia Central</td>
+                                    <td>Farmacia Norte</td>
+                                    <td>50</td>
+                                    <td><span class="status-badge success">Completada</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2025-06-18</td>
+                                    <td>Vitamina C 1000mg</td>
+                                    <td>Farmacia Sur</td>
+                                    <td>Farmacia Este</td>
+                                    <td>30</td>
+                                    <td><span class="status-badge warning">En Tránsito</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Empleados Section -->
+        <section id="empleados" class="content-section">
+            <div class="section-header">
+                <h2>Ranking de Empleados</h2>
+                <div class="period-selector">
+                    <select>
+                        <option>Mes actual</option>
+                        <option>Mes anterior</option>
+                        <option>Trimestre</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="employees-grid">
+                <div class="top-performers">
+                    <h3>Top 3 del Mes</h3>
+                    <div class="podium">
+                        <div class="podium-item second">
+                            <div class="employee-avatar">
+                                <img src="https://via.placeholder.com/60" alt="Empleado">
+                            </div>
+                            <h4>María García</h4>
+                            <p>$8,450 en ventas</p>
+                            <div class="medal silver">2°</div>
+                        </div>
+                        <div class="podium-item first">
+                            <div class="employee-avatar">
+                                <img src="https://via.placeholder.com/60" alt="Empleado">
+                            </div>
+                            <h4>Carlos López</h4>
+                            <p>$12,300 en ventas</p>
+                            <div class="medal gold">1°</div>
+                        </div>
+                        <div class="podium-item third">
+                            <div class="employee-avatar">
+                                <img src="https://via.placeholder.com/60" alt="Empleado">
+                            </div>
+                            <h4>Ana Rodríguez</h4>
+                            <p>$7,890 en ventas</p>
+                            <div class="medal bronze">3°</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ranking-table">
+                    <h3>Ranking Completo</h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Posición</th>
+                                    <th>Empleado</th>
+                                    <th>Sucursal</th>
+                                    <th>Ventas</th>
+                                    <th>Productos Vendidos</th>
+                                    <th>Puntuación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="rank-1">
+                                    <td>1</td>
+                                    <td>Carlos López</td>
+                                    <td>Farmacia Central</td>
+                                    <td>$12,300</td>
+                                    <td>245</td>
+                                    <td>98.5</td>
+                                </tr>
+                                <tr class="rank-2">
+                                    <td>2</td>
+                                    <td>María García</td>
+                                    <td>Farmacia Norte</td>
+                                    <td>$8,450</td>
+                                    <td>189</td>
+                                    <td>87.2</td>
+                                </tr>
+                                <tr class="rank-3">
+                                    <td>3</td>
+                                    <td>Ana Rodríguez</td>
+                                    <td>Farmacia Sur</td>
+                                    <td>$7,890</td>
+                                    <td>156</td>
+                                    <td>82.1</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>Pedro Martínez</td>
+                                    <td>Farmacia Este</td>
+                                    <td>$6,750</td>
+                                    <td>134</td>
+                                    <td>75.8</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for Add Product -->
+    <div id="addProductModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Agregar Nuevo Producto</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form class="form-grid">
+                    <div class="form-group">
+                        <label>Código del Producto</label>
+                        <input type="text" class="form-control" placeholder="MED001">
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre del Producto</label>
+                        <input type="text" class="form-control" placeholder="Paracetamol 500mg">
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select class="form-control">
+                            <option>Analgésicos</option>
+                            <option>Antibióticos</option>
+                            <option>Vitaminas</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Proveedor</label>
+                        <select class="form-control">
+                            <option>Proveedor A</option>
+                            <option>Proveedor B</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad Inicial</label>
+                        <input type="number" class="form-control" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Precio Unitario</label>
+                        <input type="number" step="0.01" class="form-control" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Vencimiento</label>
+                        <input type="date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Mínimo</label>
+                        <input type="number" class="form-control" placeholder="10">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary">Cancelar</button>
+                <button class="btn btn-primary">Guardar Producto</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'inventario/js/script.js' %}"></script>
+</body>
+</html>
+

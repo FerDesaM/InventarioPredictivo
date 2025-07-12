@@ -1,0 +1,14 @@
+<form method="post">
+  {% csrf_token %}
+  <label for="id">ID de Manager:</label>
+  <input type="number" name="id" required>
+
+  <label for="password">Contraseña:</label>
+  <input type="password" name="password" required>
+
+  <button type="submit">Iniciar sesión</button>
+
+  {% if error %}
+    <p style="color:red">{{ error }}</p>
+  {% endif %}
+</form>

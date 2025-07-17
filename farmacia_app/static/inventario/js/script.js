@@ -317,6 +317,80 @@ const calculateDaysUntilExpiry = (expiryDate) => {
     return diffDays;
 };
 
+document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('btnPredecir');
+    const select = document.getElementById('productoSelect');
+
+    btn.addEventListener('click', function () {
+        const producto = select.value;
+        if (!producto) {
+            alert("Selecciona un producto");
+            return;
+        }
+
+        fetch(`/ajax/prediccion/?producto=${encodeURIComponent(producto)}`)
+            .then(res => res.json())
+            .then(data => renderPrediccion(data));
+    });
+
+    function renderPrediccion(data) {
+        const contenedor = document.getElementById('resultado-prediccion');
+
+        if (data.mensaje_error) {
+            contenedor.innerHTML = `<div class="alert alert-warning">${data.mensaje_error}</div>`;
+            return;
+        }
+
+        const labels = data.predicciones.map(p => p.farmacia);
+        const valores = data.predicciones.map(p => p.mes_agotamiento);
+        const colores = data.predicciones.map(p =>
+            p.mes_agotamiento <= 7 ? '#dc2626' : (p.mes_agotamiento <= 10 ? '#facc15' : '#16a34a')
+        );
+
+        contenedor.innerHTML = `
+            <div class="prediction-grid mt-4">
+                <div class="prediction-chart">
+                    <h3>Mes estimado de agotamiento por farmacia</h3>
+                    <canvas id="chartPrediccion" height="180"></canvas>
+                </div>
+                <div class="prediction-card">
+                    <h3>Detalle de predicciones</h3>
+                    <ul>
+                        ${data.predicciones.map(p =>
+                            `<li><strong>${p.farmacia}</strong>: Stock = ${p.stock}, Tasa = ${p.tasa}, Mes = ${p.mes_agotamiento}</li>`
+                        ).join('')}
+                    </ul>
+                </div>
+            </div>
+        `;
+
+        new Chart(document.getElementById('chartPrediccion'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Mes de agotamiento (1-12)',
+                    data: valores,
+                    backgroundColor: colores
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 12,
+                        title: {
+                            display: true,
+                            text: 'Mes'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+
 // Export functions for potential use in other scripts
 window.InventoryApp = {
     formatCurrency,

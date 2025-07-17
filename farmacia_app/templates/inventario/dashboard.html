@@ -7,6 +7,8 @@
     <title>Inventario Predictivo - Dashboard</title>
     <link rel="stylesheet" href="{% static 'inventario/css/styles.css' %}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 <body>
     <!-- Header -->
@@ -230,50 +232,31 @@
             </div>
         </section>
 
-        <!-- Predicción Section -->
+
+        <!-- Selector de producto y botón -->
         <section id="prediccion" class="content-section">
-            <div class="section-header">
+            <div class="section-header mb-3">
                 <h2>Predicción Inteligente</h2>
-                <button class="btn btn-secondary">Actualizar Predicciones</button>
             </div>
-
-            <div class="prediction-grid">
-                <div class="prediction-card">
-                    <h3>Recomendaciones de Compra</h3>
-                    <div class="recommendation-list">
-                        <div class="recommendation-item">
-                            <div class="product-info">
-                                <h4>Paracetamol 500mg</h4>
-                                <p>Cantidad sugerida: 200 unidades</p>
-                                <p>Razón: Tendencia al alza + Stock bajo</p>
-                            </div>
-                            <div class="recommendation-actions">
-                                <button class="btn btn-success btn-sm">Aprobar</button>
-                                <button class="btn btn-outline btn-sm">Modificar</button>
-                            </div>
-                        </div>
-                        <div class="recommendation-item">
-                            <div class="product-info">
-                                <h4>Vitamina D 1000UI</h4>
-                                <p>Cantidad sugerida: 150 unidades</p>
-                                <p>Razón: Estacionalidad (invierno)</p>
-                            </div>
-                            <div class="recommendation-actions">
-                                <button class="btn btn-success btn-sm">Aprobar</button>
-                                <button class="btn btn-outline btn-sm">Modificar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="prediction-chart">
-                    <h3>Análisis de Tendencias</h3>
-                    <div class="chart-placeholder">
-                        <canvas id="trendsChart"></canvas>
-                    </div>
-                </div>
+        
+            <!-- Selector de producto y botón -->
+            <div class="mb-4">
+                <label for="productoSelect">Selecciona un producto:</label>
+                <select id="productoSelect" class="form-select">
+                    <option value="">-- Selecciona --</option>
+                    {% for p in productos %}
+                    <option value="{{ p.nombre_producto }}">{{ p.nombre_producto }}</option>
+                    {% endfor %}
+                </select>
+                <button id="btnPredecir" class="btn btn-primary mt-2">Predecir</button>
             </div>
+        
+            <!-- Aquí se mostrarán los resultados -->
+            <div id="resultado-prediccion"></div>
         </section>
+        
+        
+        
 
         <!-- Caducidad Section -->
         <section id="caducidad" class="content-section">
@@ -575,7 +558,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script src="{% static 'inventario/js/script.js' %}"></script>
 </body>
 </html>
-

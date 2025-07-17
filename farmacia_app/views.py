@@ -8,6 +8,7 @@ def home(request):
     return render(request, 'farmacia_app/home.html', {
         'user': request.user
     })
+
 def dashboard_view(request):
     farmacias = Farmacia.objects.all()
     productos = Producto.objects.all()[:10]
@@ -35,7 +36,7 @@ def login_view(request):
     if request.method == 'POST':
         manager_id = request.POST.get('id')
         password   = request.POST.get('password')
-
+        
         if not manager_id or not password:
             return render(request, 'inventario/login.html', {
                 'error': 'Por favor, completa ambos campos.'

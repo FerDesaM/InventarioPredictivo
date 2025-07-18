@@ -147,3 +147,46 @@ def prediccion_producto_ajax(request):
         'predicciones': predicciones,
         'mensaje_error': mensaje_error
     })
+
+
+def ventas_producto_ajax(request):
+    nombre = request.GET.get('producto')
+    ventas_por_farmacia = defaultdict(lambda: defaultdict(int))  # {farmacia: {mes-año: cantidad}}
+
+    if nombre:
+        try:
+            producto = Producto.objects.get(nombre_producto__icontains=nombre)
+            ventas = Venta.objects.filter(producto=producto)
+
+            for venta in ventas:
+                farmacia_nombre = venta.empleado.farmacia.nombre_farmacia
+                clave_mes = f"{venta.month}-{venta.year}"
+                ventas_por_farmacia[farmacia_nombre][clave_mes] += venta.quantity
+
+            # Construir estructura para el gráfico
+            data = []
+            for farmacia, ventas_mensuales in ventas_por_farmacia.items():
+                # Ordenar por año y mes
+                ordenadas = sorted(
+                    ventas_mensuales.items(),
+                    key=lambda x: (
+                        int(x[0].split("-")[1]),  # año
+                        datetime.strptime(x[0].split("-")[0][:3], "%b").month if len(x[0].split("-")[0]) == 3 else {
+                            'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4, 'mayo': 5, 'junio': 6,
+                            'julio': 7, 'agosto': 8, 'septiembre': 9, 'octubre': 10,
+                            'noviembre': 11, 'diciembre': 12
+                        }.get(x[0].split("-")[0].lower(), 1)
+                    )
+                )
+
+                data.append({
+                    'farmacia': farmacia,
+                    'ventas': [{'mes': k, 'cantidad': v} for k, v in ordenadas]
+                })
+
+            return JsonResponse({'ventas_por_farmacia': data})
+
+        except Producto.DoesNotExist:
+            return JsonResponse({'error': 'Producto no encontrado'}, status=404)
+
+    return JsonResponse({'error': 'Nombre de producto no especificado'}, status=400)

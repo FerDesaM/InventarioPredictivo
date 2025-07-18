@@ -331,6 +331,10 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch(`/ajax/prediccion/?producto=${encodeURIComponent(producto)}`)
             .then(res => res.json())
             .then(data => renderPrediccion(data));
+        
+        fetch(`/ajax/ventas/?producto=${encodeURIComponent(producto)}`)
+            .then(res => res.json())
+            .then(data => renderGraficoVentas(data));
     });
 
     function renderPrediccion(data) {
@@ -441,6 +445,95 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    function renderGraficoVentas(data) {
+        const graficoContainer = document.getElementById('grafico-ventas-container');
+        graficoContainer.innerHTML = '';
+    
+        if (data.error) {
+            graficoContainer.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+            return;
+        }
+    
+        // Crear contenedor con tamaño controlado
+        const chartWrapper = document.createElement('div');
+        chartWrapper.style.width = '1200px';
+        chartWrapper.style.height = '550px';
+        chartWrapper.style.margin = '0 auto'; // Centrado
+        chartWrapper.style.padding = '10px';
+        chartWrapper.style.backgroundColor = '#fff';
+    
+        const canvas = document.createElement('canvas');
+        canvas.id = 'graficoVentas';
+        chartWrapper.appendChild(canvas);
+        graficoContainer.appendChild(chartWrapper);
+    
+        const todasEtiquetas = new Set();
+    
+        data.ventas_por_farmacia.forEach(f => {
+            f.ventas.forEach(v => todasEtiquetas.add(v.mes));
+        });
+    
+        const labels = Array.from(todasEtiquetas).sort((a, b) => {
+            const [mesA, anioA] = a.split("-");
+            const [mesB, anioB] = b.split("-");
+            const parseMes = (mes) => {
+                const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+                               'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                return meses.indexOf(mes.toLowerCase());
+            };
+            return parseInt(anioA) - parseInt(anioB) || parseMes(mesA) - parseMes(mesB);
+        });
+    
+        const colores = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']; // Más colores si hay más farmacias
+    
+        const datasets = data.ventas_por_farmacia.map((farmaciaData, index) => {
+            const datosPorMes = new Map(farmaciaData.ventas.map(v => [v.mes, v.cantidad]));
+            return {
+                label: farmaciaData.farmacia,
+                data: labels.map(mes => datosPorMes.get(mes) || 0),
+                borderColor: colores[index % colores.length],
+                backgroundColor: colores[index % colores.length] + "33",
+                fill: false,
+                tension: 0.3,
+                pointRadius: 4
+            };
+        });
+    
+        new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                maintainAspectRatio: false,  // 👈 esto permite que respete el tamaño del div padre
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Histórico de ventas por farmacia',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    
 });
 
 

@@ -341,11 +341,12 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const labels = data.predicciones.map(p => p.farmacia);
-        const valores = data.predicciones.map(p => p.mes_agotamiento);
-        const colores = data.predicciones.map(p =>
-            p.mes_agotamiento <= 7 ? '#dc2626' : (p.mes_agotamiento <= 10 ? '#facc15' : '#16a34a')
-        );
+        const labels = [];
+        const valores = [];
+        const colores = [];
+
+        const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio",
+                             "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
         contenedor.innerHTML = `
             <div class="prediction-grid mt-4">
@@ -357,40 +358,67 @@ document.addEventListener('DOMContentLoaded', function () {
                     <h3>Detalle de predicciones</h3>
                     <div class="farmacia-cards">
                         ${data.predicciones.map(p => {
-                            const color = p.mes_agotamiento <= 7 ? '#fee2e2' : (p.mes_agotamiento <= 10 ? '#fef9c3' : '#dcfce7');
-                            const icon = p.mes_agotamiento <= 7 ? '❗' : (p.mes_agotamiento <= 10 ? '⚠️' : '✅');
-                            const porcentaje = Math.min((p.mes_agotamiento / 12) * 100, 100);
-        
+                            const [anioAg, mesAg] = p.fecha_agotamiento.split("-").map(Number);
+                            const [anioUl, mesUl] = p.ultima_venta.split("-").map(Number);
+
+                            const fechaAg = new Date(anioAg, mesAg - 1);
+                            const fechaUl = new Date(anioUl, mesUl - 1);
+                            const mesesRestantes = (fechaAg.getFullYear() - fechaUl.getFullYear()) * 12 + (fechaAg.getMonth() - fechaUl.getMonth());
+
+                            let color, icon, barraColor;
+                            if (mesesRestantes <= 4) {
+                                color = '#fee2e2'; barraColor = '#dc2626'; icon = '❗';
+                            } else if (mesesRestantes <= 8) {
+                                color = '#fef9c3'; barraColor = '#facc15'; icon = '⚠️';
+                            } else {
+                                color = '#dcfce7'; barraColor = '#16a34a'; icon = '✅';
+                            }
+
+                            const mesTexto = nombreMeses[mesAg - 1];
+                            const porcentaje = Math.min((mesAg / 12) * 100, 100);
+
+                            labels.push(p.farmacia);
+                            valores.push(mesAg);
+                            colores.push(barraColor);
+
                             return `
                                 <div class="farmacia-card" style="background-color:${color}; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
                                         <h4 style="margin: 0;">${icon} ${p.farmacia}</h4>
-                                        <span style="font-size: 0.85rem; color: #6b7280;">Mes ${p.mes_agotamiento}</span>
+                                        <span style="font-size: 0.85rem; color: #6b7280;">Mes ${mesAg}</span>
                                     </div>
                                     <div style="margin-top: 0.5rem;">
                                         <p style="margin: 0.2rem 0;"><strong>Stock:</strong> ${p.stock}</p>
                                         <p style="margin: 0.2rem 0;"><strong>Tasa venta:</strong> ${p.tasa} unid/mes</p>
+                                        <p style="margin: 0.2rem 0;"><strong>Última venta:</strong> ${p.ultima_venta}</p>
+                                        <p style="margin: 0.2rem 0;"><strong>Predecir agotamiento:</strong> ${mesTexto} ${anioAg}</p>
                                         <div style="height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin-top: 0.5rem;">
-                                            <div style="width: ${porcentaje}%; height: 100%; background-color: ${
-                                                p.mes_agotamiento <= 7 ? '#dc2626' : (p.mes_agotamiento <= 10 ? '#facc15' : '#16a34a')
-                                            };"></div>
+                                            <div style="width: ${porcentaje}%; height: 100%; background-color: ${barraColor};"></div>
                                         </div>
                                     </div>
                                 </div>
                             `;
                         }).join('')}
                     </div>
+                    <!-- Leyenda de colores -->
+                    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                        <h4 style="margin-bottom: 0.5rem;">Leyenda de colores:</h4>
+                        <ul style="list-style: none; padding-left: 0; font-size: 0.9rem;">
+                            <li><span style="display:inline-block;width:12px;height:12px;background-color:#dc2626;border-radius:3px;margin-right:8px;"></span>❗ Rojo: se agotará en ≤ 4 meses desde la última venta</li>
+                            <li><span style="display:inline-block;width:12px;height:12px;background-color:#facc15;border-radius:3px;margin-right:8px;"></span>⚠️ Amarillo: se agotará en 5 a 8 meses</li>
+                            <li><span style="display:inline-block;width:12px;height:12px;background-color:#16a34a;border-radius:3px;margin-right:8px;"></span>✅ Verde: se agotará en 9 meses o más</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         `;
-    
 
         new Chart(document.getElementById('chartPrediccion'), {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Mes de agotamiento (1-12)',
+                    label: 'Mes de agotamiento (1–12)',
                     data: valores,
                     backgroundColor: colores
                 }]
@@ -401,9 +429,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     y: {
                         beginAtZero: true,
                         max: 12,
+                        ticks: {
+                            stepSize: 1
+                        },
                         title: {
                             display: true,
-                            text: 'Mes'
+                            text: 'Mes (número)'
                         }
                     }
                 }
@@ -411,6 +442,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+
 
 // Export functions for potential use in other scripts
 window.InventoryApp = {

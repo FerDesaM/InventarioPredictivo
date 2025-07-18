@@ -19,6 +19,7 @@ from farmacia_app.view.empleado_views import (
 
 
 urlpatterns = [
+
     path('', lambda request: redirect('login')),
     path('login/', views.login_view, name='login'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
@@ -42,5 +43,4 @@ urlpatterns = [
     # APIs de búsqueda
     path('api/empleado/sugerencias/', api_get_suggestions, name='api_empleado_sugerencias'),
     path('api/empleado/codigo/<str:barcode>/', api_search_by_barcode, name='api_empleado_codigo'),
-
 ]

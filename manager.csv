@@ -1,0 +1,4 @@
+Manager_ID,Nombre,Apellido,Farmacia_ID,Password,Email
+1,Ernesto,Salas,1,ernesto123,mariana.rios@saludfarmacias.com
+2,Julia,Medina,2,julia123,jose.luna92@gmail.com
+3,Miguel,Arce,3,miguel123,carla_mendoza@outlook.com

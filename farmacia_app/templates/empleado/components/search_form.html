@@ -1,0 +1,377 @@
+<!-- Search and Filters Component -->
+<div class="search-filters-container">
+    <div class="search-section">
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <input type="text" id="search-input" class="search-input" 
+                       placeholder="Buscar productos por nombre, código o clase...">
+                <button class="search-btn" onclick="performSearch()">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button class="barcode-btn" onclick="toggleBarcodeSearch()" title="Búsqueda por código de barras">
+                    <i class="fas fa-barcode"></i>
+                </button>
+            </div>
+            <div id="search-suggestions" class="search-suggestions"></div>
+        </div>
+        
+        <div class="search-actions">
+            <button class="btn btn-outline" onclick="toggleFilters()">
+                <i class="fas fa-filter"></i>
+                Filtros
+                <span id="active-filters-count" class="filter-count" style="display: none;">0</span>
+            </button>
+            <button class="btn btn-outline" onclick="clearSearch()">
+                <i class="fas fa-times"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+    
+    <!-- Advanced Filters -->
+    <div id="filters-panel" class="filters-panel">
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label for="filter-class">Clase de Producto</label>
+                <select id="filter-class" class="form-control">
+                    <option value="">Todas las clases</option>
+                    {% for clase in filter_options.clases %}
+                    <option value="{{ clase }}">{{ clase }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filter-stock-status">Estado del Stock</label>
+                <select id="filter-stock-status" class="form-control">
+                    <option value="">Todos los estados</option>
+                    {% for option in filter_options.stock_status_options %}
+                    <option value="{{ option.value }}">{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Rango de Precios</label>
+                <div class="price-range">
+                    <input type="number" id="filter-price-min" class="form-control" 
+                           placeholder="Mín" min="0" step="0.01">
+                    <span class="range-separator">-</span>
+                    <input type="number" id="filter-price-max" class="form-control" 
+                           placeholder="Máx" min="0" step="0.01">
+                </div>
+            </div>
+            
+            <div class="filter-group">
+                <label>Rango de Stock</label>
+                <div class="stock-range">
+                    <input type="number" id="filter-stock-min" class="form-control" 
+                           placeholder="Mín" min="0">
+                    <span class="range-separator">-</span>
+                    <input type="number" id="filter-stock-max" class="form-control" 
+                           placeholder="Máx" min="0">
+                </div>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filter-expiring">Próximos a Vencer</label>
+                <select id="filter-expiring" class="form-control">
+                    <option value="">Sin filtro</option>
+                    <option value="7">En 7 días</option>
+                    <option value="15">En 15 días</option>
+                    <option value="30">En 30 días</option>
+                    <option value="60">En 60 días</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filter-order">Ordenar por</label>
+                <select id="filter-order" class="form-control">
+                    {% for option in filter_options.order_options %}
+                    <option value="{{ option.value }}">{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="filters-actions">
+            <button class="btn btn-primary" onclick="applyFilters()">
+                <i class="fas fa-check"></i>
+                Aplicar Filtros
+            </button>
+            <button class="btn btn-secondary" onclick="clearFilters()">
+                <i class="fas fa-undo"></i>
+                Limpiar Filtros
+            </button>
+        </div>
+    </div>
+    
+    <!-- Quick Filters -->
+    <div class="quick-filters">
+        <span class="quick-filters-label">Filtros rápidos:</span>
+        <button class="quick-filter-btn" onclick="applyQuickFilter('low-stock')">
+            <i class="fas fa-exclamation-triangle"></i>
+            Stock Bajo
+        </button>
+        <button class="quick-filter-btn" onclick="applyQuickFilter('expiring-soon')">
+            <i class="fas fa-clock"></i>
+            Por Vencer
+        </button>
+        <button class="quick-filter-btn" onclick="applyQuickFilter('high-value')">
+            <i class="fas fa-dollar-sign"></i>
+            Alto Valor
+        </button>
+        <button class="quick-filter-btn" onclick="applyQuickFilter('recently-added')">
+            <i class="fas fa-plus"></i>
+            Recientes
+        </button>
+    </div>
+    
+    <!-- Search Results Info -->
+    <div class="search-results-info">
+        <div class="results-summary">
+            <span id="results-count">Mostrando todos los productos</span>
+        </div>
+        <div class="view-options">
+            <button class="view-btn active" data-view="table" onclick="changeView('table')">
+                <i class="fas fa-table"></i>
+                Tabla
+            </button>
+            <button class="view-btn" data-view="grid" onclick="changeView('grid')">
+                <i class="fas fa-th"></i>
+                Cuadrícula
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.search-filters-container {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-section {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.search-bar {
+    flex: 1;
+    position: relative;
+}
+
+.search-input-wrapper {
+    display: flex;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+}
+
+.search-input-wrapper:focus-within {
+    border-color: #007bff;
+}
+
+.search-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+.search-btn, .barcode-btn {
+    padding: 12px 16px;
+    border: none;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.search-btn:hover, .barcode-btn:hover {
+    background: #0056b3;
+}
+
+.barcode-btn {
+    background: #28a745;
+}
+
+.barcode-btn:hover {
+    background: #1e7e34;
+}
+
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.suggestion-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+
+.suggestion-item:hover {
+    background: #f8f9fa;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.search-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.filter-count {
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+.filters-panel {
+    display: none;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 16px;
+}
+
+.filters-panel.active {
+    display: block;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.price-range, .stock-range {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.range-separator {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.filters-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.quick-filters {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e1e5e9;
+}
+
+.quick-filters-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.quick-filter-btn {
+    padding: 6px 12px;
+    border: 1px solid #e1e5e9;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.quick-filter-btn:hover {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.quick-filter-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.search-results-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid #e1e5e9;
+}
+
+.results-summary {
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.view-options {
+    display: flex;
+    gap: 4px;
+}
+
+.view-btn {
+    padding: 8px 12px;
+    border: 1px solid #e1e5e9;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.view-btn:first-child {
+    border-radius: 6px 0 0 6px;
+}
+
+.view-btn:last-child {
+    border-radius: 0 6px 6px 0;
+}
+
+.view-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.view-btn:hover:not(.active) {
+    background: #f8f9fa;
+}
+</style>
+

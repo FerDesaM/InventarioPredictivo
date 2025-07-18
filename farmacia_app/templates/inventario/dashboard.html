@@ -47,6 +47,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="#compras">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Compras</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="#prediccion">
                         <i class="fas fa-chart-line"></i>
                         <span>Predicción</span>
@@ -70,6 +76,7 @@
                         <span>Empleados</span>
                     </a>
                 </li>
+                
             </ul>
         </nav>
     </aside>
@@ -131,6 +138,26 @@
                         <span class="stat-change positive">+8.7%</span>
                     </div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.compras_mes }}</h3>
+                        <p>Compras del Mes</p>
+                        <span class="stat-change positive">+{{ stats.compras_pendientes }} pendientes</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>${{ stats.total_compras_mes|floatformat:2 }}</h3>
+                        <p>Inversión en Compras</p>
+                        <span class="stat-change positive">+8.7%</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Charts and Tables -->
@@ -158,7 +185,99 @@
             </div>
         </section>
 
-        <!-- Inventario Section -->
+    
+      <!-- Sección Compras -->
+      <section id="compras" class="content-section">
+        <div class="section-header">
+          <h2>Gestión de Compras</h2>
+          <button class="btn btn-primary" onclick="mostrarForm('nueva')">
+            <i class="fas fa-plus"></i> Nueva Compra
+          </button>
+        </div>
+
+        <!-- Listado -->
+        <div id="listado-compras">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>Producto</th><th>Farmacia</th><th>Proveedor</th>
+                <th>Cant.</th><th>Precio U.</th><th>Total</th><th>Fecha</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in compras_recientes %}
+              <tr>
+                <td>{{ c.id }}</td>
+                <td>{{ c.producto.nombre_producto }}</td>
+                <td>{{ c.farmacia.nombre_farmacia }}</td>
+                <td>{{ c.proveedor }}</td>
+                <td>{{ c.cantidad }}</td>
+                <td>${{ c.precio_unitarioC|floatformat:2 }}</td>
+                <td>${{ c.total_compra|floatformat:2 }}</td>
+                <td>{{ c.fecha_compra|date:"d/m/Y" }}</td>
+                <td>
+                  <button onclick="window.location='?sección=compras&editar={{ c.id }}'">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button onclick="if(confirm('Eliminar?')) postForm('eliminar', '{{ c.id }}')">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="9">No hay compras registradas</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Formulario -->
+<div id="form-compras" style="display:none;">
+  <h3>{% if compra_editar %}Editar Compra #{{ compra_editar.id }}{% else %}Nueva Compra{% endif %}</h3>
+  <form method="post" action="?seccion=compras" id="compra-form">
+    {% csrf_token %}
+    <input type="hidden" name="accion" value="{% if compra_editar %}editar{% else %}nueva{% endif %}">
+    {% if compra_editar %}
+      <input type="hidden" name="compra_id" value="{{ compra_editar.id }}">
+    {% endif %}
+    <label>Farmacia</label>
+    <select name="farmacia" required>
+      <option value="">--</option>
+      {% for f in farmacias %}
+      <option value="{{ f.id }}" {% if compra_editar and f.id == compra_editar.farmacia.id %}selected{% endif %}>
+        {{ f.nombre_farmacia }}
+      </option>
+      {% endfor %}
+    </select>
+
+    <label>Producto</label>
+<select name="producto" required>
+  <option value="P001">--</option>
+  {% for p in productos %}
+  <option value="{{ p.id }}" {% if compra_editar and p.id == compra_editar.producto.id %}selected{% endif %}>{{ p.nombre_producto }}</option>
+  {% endfor %}
+</select>
+
+    <label>Proveedor</label>
+    <input type="text" name="proveedor" required value="{{ compra_editar.proveedor|default:'' }}">
+
+    <label>Cantidad</label>
+    <input type="number" name="cantidad" min="1" required value="{{ compra_editar.cantidad|default:'' }}">
+
+    <label>Precio Unitario</label>
+    <input type="number" step="0.01" name="precio_unitarioC" min="0" required value="{{ compra_editar.precio_unitarioC|default:'' }}">
+
+    <label>Fecha Compra</label>
+    <input type="date" name="fecha_compra"
+  value="{% if compra_editar %}{{ compra_editar.fecha_compra|date:'Y-m-d' }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}">
+    <button type="submit" class="btn btn-success">{% if compra_editar %}Actualizar{% else %}Guardar{% endif %}</button>
+    <button type="button" class="btn btn-secondary" onclick="mostrarForm('')">Cancelar</button>
+  </form>
+</div>
+      </section>
+   
+
+    <!-- Inventario Section -->
         <section id="inventario" class="content-section">
             <div class="section-header">
                 <h2>Gestión de Inventario</h2>
@@ -186,7 +305,7 @@
                 </div>
             </div>
 
-            <!-- Inventory Table -->
+      <!-- Inventory Table -->
             <div class="table-container">
                 <table class="data-table">
                     <thead>
@@ -229,6 +348,67 @@
                 </table>
             </div>
         </section>
+
+<script>
+  const formDiv = document.getElementById('form-compras');
+  const listDiv = document.getElementById('listado-compras');
+
+  // Variable booleana que indica si hay compra para editar
+  const COMPRA_EDITAR = '{{ compra_editar|yesno:"true,false" }}';
+
+  function mostrarForm(accion) {
+    if (accion === 'nueva' || COMPRA_EDITAR) {
+      listDiv.style.display = 'none';
+      formDiv.style.display = 'block';
+    } else {
+      formDiv.style.display = 'none';
+      listDiv.style.display = 'block';
+    }
+  }
+
+  // Obtiene token CSRF del DOM para los formularios creados dinámicamente en JS
+  function getCsrfToken() {
+    const csrfElem = document.querySelector('[name=csrfmiddlewaretoken]');
+    return csrfElem ? csrfElem.value : '';
+  }
+
+  // Función para eliminar o editar usando un formulario dinámico POST con CSRF
+  function postForm(accion, id) {
+    const f = document.createElement('form');
+    f.method = 'post';
+    f.action = ''; // Envía a la misma URL actual con parámetros GET intactos
+    const csrfToken = getCsrfToken();
+    f.innerHTML = `
+      <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+      <input type="hidden" name="accion" value="${accion}">
+      <input type="hidden" name="compra_id" value="${id}">
+    `;
+    document.body.appendChild(f);
+    f.submit();
+  }
+
+  // Al cargar la página, si estamos editando, mostrar el formulario directamente
+  window.onload = function() {
+    if (COMPRA_EDITAR) {
+      mostrarForm('editar');
+    }
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         <!-- Predicción Section -->
         <section id="prediccion" class="content-section">
@@ -517,6 +697,18 @@
             </div>
         </section>
     </main>
+
+    
+
+
+
+
+
+
+
+
+
+
 
     <!-- Modal for Add Product -->
     <div id="addProductModal" class="modal">

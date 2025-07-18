@@ -1,0 +1,16 @@
+Empleado_id,Nombre,Apellido,DNI,Farmacia_ID,Pasword,Es_admin
+1,Ana,Ramos,12345678,1,123123,False
+2,Luis,Huamán,23456789,1,123123123,False
+3,Carla,Zúñiga,34567890,2,123123,False
+4,Jorge,Mamani,45678901,2,123123,False
+5,María,Quispe,56789012,3,123123,False
+6,Pedro,López,67890123,1,234234,False
+7,Carmen,Valencia,78901234,3,234234,False
+8,Marco,Torres,89012345,3,234234,False
+9,Lucía,Cáceres,90123456,3,234234,False
+10,Fabián,Gómez,11223344,2,234234,False
+11,Daniela,Ortiz,22334455,2,345345,False
+12,Héctor,Sánchez,33445566,3,456456,False
+13,Valeria,Ruiz,44556677,1,3452,False
+14,Bruno,Delgado,55667788,1,234235,False
+15,Sofía,Vega,66778899,3,2342345,False

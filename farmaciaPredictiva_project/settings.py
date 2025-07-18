@@ -42,6 +42,15 @@ INSTALLED_APPS = [
     'farmacia_app',
 ]
 
+# Configuración de archivos estáticos
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'farmacia_app/static',
+]
+
+# Para producción, también configurar:
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

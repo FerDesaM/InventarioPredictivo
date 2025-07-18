@@ -355,14 +355,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div class="prediction-card">
                     <h3>Detalle de predicciones</h3>
-                    <ul>
-                        ${data.predicciones.map(p =>
-                            `<li><strong>${p.farmacia}</strong>: Stock = ${p.stock}, Tasa = ${p.tasa}, Mes = ${p.mes_agotamiento}</li>`
-                        ).join('')}
-                    </ul>
+                    <div class="farmacia-cards">
+                        ${data.predicciones.map(p => {
+                            const color = p.mes_agotamiento <= 7 ? '#fee2e2' : (p.mes_agotamiento <= 10 ? '#fef9c3' : '#dcfce7');
+                            const icon = p.mes_agotamiento <= 7 ? '❗' : (p.mes_agotamiento <= 10 ? '⚠️' : '✅');
+                            const porcentaje = Math.min((p.mes_agotamiento / 12) * 100, 100);
+        
+                            return `
+                                <div class="farmacia-card" style="background-color:${color}; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <h4 style="margin: 0;">${icon} ${p.farmacia}</h4>
+                                        <span style="font-size: 0.85rem; color: #6b7280;">Mes ${p.mes_agotamiento}</span>
+                                    </div>
+                                    <div style="margin-top: 0.5rem;">
+                                        <p style="margin: 0.2rem 0;"><strong>Stock:</strong> ${p.stock}</p>
+                                        <p style="margin: 0.2rem 0;"><strong>Tasa venta:</strong> ${p.tasa} unid/mes</p>
+                                        <div style="height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin-top: 0.5rem;">
+                                            <div style="width: ${porcentaje}%; height: 100%; background-color: ${
+                                                p.mes_agotamiento <= 7 ? '#dc2626' : (p.mes_agotamiento <= 10 ? '#facc15' : '#16a34a')
+                                            };"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
                 </div>
             </div>
         `;
+    
 
         new Chart(document.getElementById('chartPrediccion'), {
             type: 'bar',
@@ -397,4 +418,3 @@ window.InventoryApp = {
     formatDate,
     calculateDaysUntilExpiry
 };
-

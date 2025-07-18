@@ -537,6 +537,141 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
+document.getElementById('btnBuscarRanking').addEventListener('click', () => {
+    const mes = document.getElementById('mesSelect').value;
+    const anio = document.getElementById('anioSelect').value;
+
+    if (!mes || !anio) {
+        alert("Selecciona mes y año");
+        return;
+    }
+
+    fetch(`/ajax/ranking-empleados-mes-anio/?mes=${mes}&anio=${anio}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            renderTablaEmpleados(data.ranking);
+            renderGraficoEmpleados(data.ranking);
+        });
+});
+
+function renderTablaEmpleados(ranking) {
+    if (ranking.length === 0) {
+        document.getElementById('tablaRankingContainer').innerHTML = "<div class='alert alert-info'>No hay datos para este mes y año.</div>";
+        return;
+    }
+
+    let html = `
+        <div class="table-responsive">
+        <table class="table table-striped table-bordered" style="background-color: white;">
+            <thead class="table-primary">
+                <tr>
+                    <th>#</th>
+                    <th>Empleado</th>
+                    <th>Sucursal</th>
+                    <th>Cantidad</th>
+                    <th>Ventas (S/)</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    ranking.forEach((item, index) => {
+        // Colores especiales para top 3 y bottom 2
+        let rowClass = '';
+        if (index === 0) rowClass = 'table-success';       // 🥇 1ro
+        else if (index === 1) rowClass = 'table-info';      // 🥈 2do
+        else if (index === 2) rowClass = 'table-warning';   // 🥉 3ro
+        else if (index >= ranking.length - 2) rowClass = 'table-danger'; // Últimos 2
+
+        html += `
+            <tr class="${rowClass}">
+                <td>${index + 1}</td>
+                <td>${item.empleado}</td>
+                <td>${item.sucursal}</td>
+                <td>${item.cantidad}</td>
+                <td><strong>S/ ${item.ventas.toFixed(2)}</strong></td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table></div>`;
+    document.getElementById('tablaRankingContainer').innerHTML = html;
+}
+
+
+let grafico = null;
+function renderGraficoEmpleados(ranking) {
+    const ctx = document.getElementById('graficoRanking').getContext('2d');
+    if (window.grafico) window.grafico.destroy();
+
+    const labels = ranking.map(r => r.empleado);
+    const datos = ranking.map(r => r.ventas);
+
+    window.grafico = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Ventas (S/)',
+                data: datos,
+                fill: false,
+                borderColor: '#007bff',         // Azul Bootstrap
+                backgroundColor: '#007bff',
+                tension: 0.3,                    // Curva suave
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#007bff',
+                pointBorderColor: '#fff',
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: context => `S/ ${context.parsed.y.toFixed(2)}`
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Ranking de Ventas por Empleado',
+                    font: {
+                        size: 18
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: value => `S/ ${value}`,
+                        font: {
+                            size: 13
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
 
 // Export functions for potential use in other scripts
 window.InventoryApp = {

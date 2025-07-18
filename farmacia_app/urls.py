@@ -6,5 +6,6 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('ajax/prediccion/', views.prediccion_producto_ajax, name='prediccion_producto_ajax'),
     path('ajax/ventas/', views.ventas_producto_ajax, name='ventas_producto'),
+    path('ajax/ranking-empleados-mes-anio/', views.ranking_empleados_mes_anio, name='ranking_empleados_mes_anio'),
     path('', views.dashboard_view, name='dashboard'),
 ]

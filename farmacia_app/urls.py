@@ -22,6 +22,11 @@ urlpatterns = [
 
     path('', lambda request: redirect('login')),
     path('login/', views.login_view, name='login'),
+
+    path('ajax/prediccion/', views.prediccion_producto_ajax, name='prediccion_producto_ajax'),
+    path('ajax/ventas/', views.ventas_producto_ajax, name='ventas_producto'),
+    path('ajax/ranking-empleados-mes-anio/', views.ranking_empleados_mes_anio, name='ranking_empleados_mes_anio'),
+
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('empleado/dashboard/', views.empleado_dashboard, name='empleado_dashboard'),
     path('logout/', views.logout_view, name='logout'),
@@ -43,4 +48,5 @@ urlpatterns = [
     # APIs de búsqueda
     path('api/empleado/sugerencias/', api_get_suggestions, name='api_empleado_sugerencias'),
     path('api/empleado/codigo/<str:barcode>/', api_search_by_barcode, name='api_empleado_codigo'),
+
 ]

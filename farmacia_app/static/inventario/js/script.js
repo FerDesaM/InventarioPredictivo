@@ -317,10 +317,365 @@ const calculateDaysUntilExpiry = (expiryDate) => {
     return diffDays;
 };
 
+document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('btnPredecir');
+    const select = document.getElementById('productoSelect');
+
+    btn.addEventListener('click', function () {
+        const producto = select.value;
+        if (!producto) {
+            alert("Selecciona un producto");
+            return;
+        }
+
+        fetch(`/ajax/prediccion/?producto=${encodeURIComponent(producto)}`)
+            .then(res => res.json())
+            .then(data => renderPrediccion(data));
+        
+        fetch(`/ajax/ventas/?producto=${encodeURIComponent(producto)}`)
+            .then(res => res.json())
+            .then(data => renderGraficoVentas(data));
+    });
+
+    function renderPrediccion(data) {
+        const contenedor = document.getElementById('resultado-prediccion');
+
+        if (data.mensaje_error) {
+            contenedor.innerHTML = `<div class="alert alert-warning">${data.mensaje_error}</div>`;
+            return;
+        }
+
+        const labels = [];
+        const valores = [];
+        const colores = [];
+
+        const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio",
+                             "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+        contenedor.innerHTML = `
+            <div class="prediction-grid mt-4">
+                <div class="prediction-chart">
+                    <h3>Mes estimado de agotamiento por farmacia</h3>
+                    <canvas id="chartPrediccion" height="180"></canvas>
+                </div>
+                <div class="prediction-card">
+                    <h3>Detalle de predicciones</h3>
+                    <div class="farmacia-cards">
+                        ${data.predicciones.map(p => {
+                            const [anioAg, mesAg] = p.fecha_agotamiento.split("-").map(Number);
+                            const [anioUl, mesUl] = p.ultima_venta.split("-").map(Number);
+
+                            const fechaAg = new Date(anioAg, mesAg - 1);
+                            const fechaUl = new Date(anioUl, mesUl - 1);
+                            const mesesRestantes = (fechaAg.getFullYear() - fechaUl.getFullYear()) * 12 + (fechaAg.getMonth() - fechaUl.getMonth());
+
+                            let color, icon, barraColor;
+                            if (mesesRestantes <= 4) {
+                                color = '#fee2e2'; barraColor = '#dc2626'; icon = '❗';
+                            } else if (mesesRestantes <= 8) {
+                                color = '#fef9c3'; barraColor = '#facc15'; icon = '⚠️';
+                            } else {
+                                color = '#dcfce7'; barraColor = '#16a34a'; icon = '✅';
+                            }
+
+                            const mesTexto = nombreMeses[mesAg - 1];
+                            const porcentaje = Math.min((mesAg / 12) * 100, 100);
+
+                            labels.push(p.farmacia);
+                            valores.push(mesAg);
+                            colores.push(barraColor);
+
+                            return `
+                                <div class="farmacia-card" style="background-color:${color}; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <h4 style="margin: 0;">${icon} ${p.farmacia}</h4>
+                                        <span style="font-size: 0.85rem; color: #6b7280;">Mes ${mesAg}</span>
+                                    </div>
+                                    <div style="margin-top: 0.5rem;">
+                                        <p style="margin: 0.2rem 0;"><strong>Stock:</strong> ${p.stock}</p>
+                                        <p style="margin: 0.2rem 0;"><strong>Tasa venta:</strong> ${p.tasa} unid/mes</p>
+                                        <p style="margin: 0.2rem 0;"><strong>Última venta:</strong> ${p.ultima_venta}</p>
+                                        <p style="margin: 0.2rem 0;"><strong>Predecir agotamiento:</strong> ${mesTexto} ${anioAg}</p>
+                                        <div style="height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin-top: 0.5rem;">
+                                            <div style="width: ${porcentaje}%; height: 100%; background-color: ${barraColor};"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    <!-- Leyenda de colores -->
+                    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                        <h4 style="margin-bottom: 0.5rem;">Leyenda de colores:</h4>
+                        <ul style="list-style: none; padding-left: 0; font-size: 0.9rem;">
+                            <li><span style="display:inline-block;width:12px;height:12px;background-color:#dc2626;border-radius:3px;margin-right:8px;"></span>❗ Rojo: se agotará en ≤ 4 meses desde la última venta</li>
+                            <li><span style="display:inline-block;width:12px;height:12px;background-color:#facc15;border-radius:3px;margin-right:8px;"></span>⚠️ Amarillo: se agotará en 5 a 8 meses</li>
+                            <li><span style="display:inline-block;width:12px;height:12px;background-color:#16a34a;border-radius:3px;margin-right:8px;"></span>✅ Verde: se agotará en 9 meses o más</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        new Chart(document.getElementById('chartPrediccion'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Mes de agotamiento (1–12)',
+                    data: valores,
+                    backgroundColor: colores
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 12,
+                        ticks: {
+                            stepSize: 1
+                        },
+                        title: {
+                            display: true,
+                            text: 'Mes (número)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderGraficoVentas(data) {
+        const graficoContainer = document.getElementById('grafico-ventas-container');
+        graficoContainer.innerHTML = '';
+    
+        if (data.error) {
+            graficoContainer.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+            return;
+        }
+    
+        // Crear contenedor con tamaño controlado
+        const chartWrapper = document.createElement('div');
+        chartWrapper.style.width = '1200px';
+        chartWrapper.style.height = '550px';
+        chartWrapper.style.margin = '0 auto'; // Centrado
+        chartWrapper.style.padding = '10px';
+        chartWrapper.style.backgroundColor = '#fff';
+    
+        const canvas = document.createElement('canvas');
+        canvas.id = 'graficoVentas';
+        chartWrapper.appendChild(canvas);
+        graficoContainer.appendChild(chartWrapper);
+    
+        const todasEtiquetas = new Set();
+    
+        data.ventas_por_farmacia.forEach(f => {
+            f.ventas.forEach(v => todasEtiquetas.add(v.mes));
+        });
+    
+        const labels = Array.from(todasEtiquetas).sort((a, b) => {
+            const [mesA, anioA] = a.split("-");
+            const [mesB, anioB] = b.split("-");
+            const parseMes = (mes) => {
+                const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+                               'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                return meses.indexOf(mes.toLowerCase());
+            };
+            return parseInt(anioA) - parseInt(anioB) || parseMes(mesA) - parseMes(mesB);
+        });
+    
+        const colores = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']; // Más colores si hay más farmacias
+    
+        const datasets = data.ventas_por_farmacia.map((farmaciaData, index) => {
+            const datosPorMes = new Map(farmaciaData.ventas.map(v => [v.mes, v.cantidad]));
+            return {
+                label: farmaciaData.farmacia,
+                data: labels.map(mes => datosPorMes.get(mes) || 0),
+                borderColor: colores[index % colores.length],
+                backgroundColor: colores[index % colores.length] + "33",
+                fill: false,
+                tension: 0.3,
+                pointRadius: 4
+            };
+        });
+    
+        new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                maintainAspectRatio: false,  // 👈 esto permite que respete el tamaño del div padre
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Histórico de ventas por farmacia',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    
+});
+
+
+document.getElementById('btnBuscarRanking').addEventListener('click', () => {
+    const mes = document.getElementById('mesSelect').value;
+    const anio = document.getElementById('anioSelect').value;
+
+    if (!mes || !anio) {
+        alert("Selecciona mes y año");
+        return;
+    }
+
+    fetch(`/ajax/ranking-empleados-mes-anio/?mes=${mes}&anio=${anio}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            renderTablaEmpleados(data.ranking);
+            renderGraficoEmpleados(data.ranking);
+        });
+});
+
+function renderTablaEmpleados(ranking) {
+    if (ranking.length === 0) {
+        document.getElementById('tablaRankingContainer').innerHTML = "<div class='alert alert-info'>No hay datos para este mes y año.</div>";
+        return;
+    }
+
+    let html = `
+        <div class="table-responsive">
+        <table class="table table-striped table-bordered" style="background-color: white;">
+            <thead class="table-primary">
+                <tr>
+                    <th>#</th>
+                    <th>Empleado</th>
+                    <th>Sucursal</th>
+                    <th>Cantidad</th>
+                    <th>Ventas (S/)</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    ranking.forEach((item, index) => {
+        // Colores especiales para top 3 y bottom 2
+        let rowClass = '';
+        if (index === 0) rowClass = 'table-success';       // 🥇 1ro
+        else if (index === 1) rowClass = 'table-info';      // 🥈 2do
+        else if (index === 2) rowClass = 'table-warning';   // 🥉 3ro
+        else if (index >= ranking.length - 2) rowClass = 'table-danger'; // Últimos 2
+
+        html += `
+            <tr class="${rowClass}">
+                <td>${index + 1}</td>
+                <td>${item.empleado}</td>
+                <td>${item.sucursal}</td>
+                <td>${item.cantidad}</td>
+                <td><strong>S/ ${item.ventas.toFixed(2)}</strong></td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table></div>`;
+    document.getElementById('tablaRankingContainer').innerHTML = html;
+}
+
+
+let grafico = null;
+function renderGraficoEmpleados(ranking) {
+    const ctx = document.getElementById('graficoRanking').getContext('2d');
+    if (window.grafico) window.grafico.destroy();
+
+    const labels = ranking.map(r => r.empleado);
+    const datos = ranking.map(r => r.ventas);
+
+    window.grafico = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Ventas (S/)',
+                data: datos,
+                fill: false,
+                borderColor: '#007bff',         // Azul Bootstrap
+                backgroundColor: '#007bff',
+                tension: 0.3,                    // Curva suave
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#007bff',
+                pointBorderColor: '#fff',
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: context => `S/ ${context.parsed.y.toFixed(2)}`
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Ranking de Ventas por Empleado',
+                    font: {
+                        size: 18
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: value => `S/ ${value}`,
+                        font: {
+                            size: 13
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+
 // Export functions for potential use in other scripts
 window.InventoryApp = {
     formatCurrency,
     formatDate,
     calculateDaysUntilExpiry
 };
-

@@ -1,0 +1,151 @@
+Product_ID,Nombre_Producto,Clase,Precio_Unitario,Fecha_Vencimiento
+P0001,Ibuprofeno Cápsulas 20 mg/5 ml,Antidiabético,161.05,2026-01-09
+P0002,Lorazepam Inyección 20 mg/5 ml,Antidiabético,113.52,2026-01-14
+P0003,Ácido fólico Tabletas 20 mg/5 ml,Broncodilatador,176.37,2026-01-18
+P0004,Amoxicilina Tabletas 5 mg,Antialérgico,138.12,2026-02-03
+P0005,Captopril Cápsulas,Antihipertensivo,166.16,2026-01-30
+P0006,Captopril Jarabe 500 mg,Ansiolítico,25.31,2026-02-20
+P0007,Glimepirida Cápsulas 250 mg,Lipid-lowering,180.94,2026-02-23
+P0008,Glimepirida Cápsulas 5 mg,Lipid-lowering,189.44,2026-02-25
+P0009,Aspirina Cápsulas 5 mg,Antidepresivo,64.81,2026-02-19
+P0010,Glimepirida Tabletas 20 mg/5 ml,Ansiolítico,19.58,2026-02-24
+P0011,Atorvastatina Inyección 500 mg,Lipid-lowering,40.9,2026-02-27
+P0012,Captopril Inyección,Antidiabético,126.24,2026-01-26
+P0013,Tramadol Tabletas 20 mg/5 ml,Antidepresivo,78.34,2026-02-17
+P0014,Prednisona Jarabe,Corticoide,33.1,2026-01-02
+P0015,Tramadol Inyección 500 mg,Antiinflamatorio,8.28,2026-02-11
+P0016,Glimepirida Inyección 250 mg,Antialérgico,191.14,2026-02-26
+P0017,Gentamicina Tabletas 500 mg,Antiulceroso,92.87,2026-02-25
+P0018,Ciprofloxacino Inyección 250 mg,Antiinflamatorio,128.68,2026-02-26
+P0019,Salbutamol Cápsulas 5 mg,Antialérgico,105.95,2026-01-11
+P0020,Clarithromicina Jarabe 20 mg/5 ml,Ansiolítico,5.57,2026-01-31
+P0021,Metronidazol Jarabe 5 mg,Antialérgico,32.94,2026-01-09
+P0022,Paracetamol Jarabe,Antibiótico,25.89,2026-02-12
+P0023,Glimepirida Inyección 20 mg/5 ml,Broncodilatador,50.93,2026-01-06
+P0024,Captopril Tabletas 250 mg,Antihipertensivo,157.53,2026-02-24
+P0025,Atorvastatina Jarabe,Antiulceroso,199.01,2026-02-11
+P0026,Clarithromicina Cápsulas 500 mg,Antidiabético,84.62,2026-01-15
+P0027,Amoxicilina Cápsulas 250 mg,Antihipertensivo,34.29,2026-01-30
+P0028,Metronidazol Tabletas 500 mg,Antiinflamatorio,97.87,2026-02-26
+P0029,Ibuprofeno Tabletas 5 mg,Lipid-lowering,101.46,2026-01-16
+P0030,Lorazepam Tabletas 250 mg,Antiinflamatorio,100.8,2026-01-03
+P0031,Omeprazol Tabletas 250 mg,Broncodilatador,74.27,2026-01-12
+P0032,Clarithromicina Inyección 500 mg,Antidiabético,117.29,2026-02-11
+P0033,Captopril Cápsulas 250 mg,Broncodilatador,93.1,2026-01-16
+P0034,Omeprazol Cápsulas 500 mg,Antiinflamatorio,148.74,2026-02-13
+P0035,Captopril Inyección 250 mg,Broncodilatador,137.22,2026-01-20
+P0036,Salbutamol Tabletas 250 mg,Antidepresivo,49.54,2026-01-10
+P0037,Ciprofloxacino Jarabe,Lipid-lowering,87.76,2026-02-05
+P0038,Aspirina Cápsulas 500 mg,Broncodilatador,126.27,2026-01-27
+P0039,Ácido fólico Cápsulas 250 mg,Antialérgico,130.04,2026-02-15
+P0040,Gentamicina Jarabe,Antihipertensivo,197.7,2026-01-30
+P0041,Omeprazol Jarabe 20 mg/5 ml,Antialérgico,89.85,2026-02-26
+P0042,Glimepirida Tabletas 5 mg,Antiulceroso,17.97,2026-01-25
+P0043,Clonazepam Inyección,Corticoide,8.24,2026-02-18
+P0044,Paracetamol Cápsulas 500 mg,Antiulceroso,143.53,2026-02-15
+P0045,Tramadol Cápsulas,Antidiabético,96.4,2026-02-11
+P0046,Hidroclorotiazida Cápsulas,Antidiabético,27.0,2026-02-27
+P0047,Prednisona Inyección 250 mg,Antihipertensivo,121.72,2026-01-24
+P0048,Metronidazol Tabletas 250 mg,Broncodilatador,72.34,2026-01-29
+P0049,Metronidazol Inyección 5 mg,Ansiolítico,99.42,2026-02-24
+P0050,Clarithromicina Cápsulas,Antibiótico,50.72,2026-01-18
+P0051,Atorvastatina Tabletas 5 mg,Antihipertensivo,51.96,2026-01-02
+P0052,Clonazepam Cápsulas 250 mg,Antihipertensivo,16.64,2026-02-10
+P0053,Ácido fólico Tabletas 5 mg,Ansiolítico,154.07,2026-02-10
+P0054,Ibuprofeno Inyección 500 mg,Lipid-lowering,46.45,2026-02-14
+P0055,Salbutamol Tabletas 20 mg/5 ml,Lipid-lowering,31.47,2026-01-17
+P0056,Hidroclorotiazida Cápsulas 500 mg,Antiulceroso,88.52,2026-02-21
+P0057,Prednisona Tabletas 5 mg,Analgésico,105.4,2026-01-09
+P0058,Ibuprofeno Jarabe 250 mg,Antiinflamatorio,180.46,2026-01-10
+P0059,Alprazolam Tabletas 20 mg/5 ml,Antialérgico,91.79,2026-02-16
+P0060,Ibuprofeno Cápsulas 500 mg,Antiulceroso,184.79,2026-02-23
+P0061,Levotiroxina Cápsulas 5 mg,Corticoide,106.15,2026-01-24
+P0062,Losartán Jarabe 250 mg,Antidepresivo,113.15,2026-01-03
+P0063,Ibuprofeno Cápsulas 5 mg,Lipid-lowering,70.89,2026-01-14
+P0064,Paracetamol Cápsulas 250 mg,Analgésico,23.87,2026-01-08
+P0065,Alprazolam Jarabe 500 mg,Ansiolítico,77.21,2026-01-16
+P0066,Gentamicina Cápsulas 5 mg,Antidepresivo,139.67,2026-01-14
+P0067,Ibuprofeno Inyección 20 mg/5 ml,Antidiabético,30.45,2026-01-03
+P0068,Amoxicilina Cápsulas 500 mg,Antibiótico,138.15,2026-02-27
+P0069,Omeprazol Inyección 500 mg,Lipid-lowering,6.27,2026-02-18
+P0070,Amoxicilina Inyección 20 mg/5 ml,Antiulceroso,94.46,2026-01-19
+P0071,Alprazolam Tabletas 5 mg,Ansiolítico,158.31,2026-01-07
+P0072,Alprazolam Jarabe,Analgésico,37.34,2026-02-13
+P0073,Captopril Cápsulas 20 mg/5 ml,Antihipertensivo,9.42,2026-02-10
+P0074,Metformina Tabletas 20 mg/5 ml,Antiulceroso,191.29,2026-01-18
+P0075,Metformina Cápsulas 500 mg,Lipid-lowering,195.67,2026-02-17
+P0076,Glimepirida Tabletas 250 mg,Antiulceroso,10.0,2026-02-17
+P0077,Metformina Jarabe 250 mg,Antihipertensivo,137.73,2026-01-19
+P0078,Metformina Tabletas,Antialérgico,141.53,2026-01-05
+P0079,Ciprofloxacino Cápsulas 500 mg,Antiinflamatorio,21.14,2026-02-06
+P0080,Hidroclorotiazida Tabletas 20 mg/5 ml,Broncodilatador,70.8,2026-02-20
+P0081,Metformina Inyección 250 mg,Antiulceroso,115.16,2026-01-02
+P0082,Alprazolam Jarabe 5 mg,Ansiolítico,100.21,2026-01-22
+P0083,Salbutamol Cápsulas 500 mg,Antidiabético,98.65,2026-01-29
+P0084,Clarithromicina Inyección 250 mg,Broncodilatador,172.01,2026-01-02
+P0085,Alprazolam Tabletas 250 mg,Analgésico,52.56,2026-01-16
+P0086,Tramadol Jarabe 500 mg,Analgésico,35.33,2026-01-21
+P0087,Paracetamol Inyección 20 mg/5 ml,Antiinflamatorio,149.2,2026-02-25
+P0088,Losartán Inyección 500 mg,Ansiolítico,26.03,2026-02-17
+P0089,Lorazepam Cápsulas 500 mg,Antialérgico,25.39,2026-01-15
+P0090,Levotiroxina Cápsulas 500 mg,Antidepresivo,167.8,2026-01-31
+P0091,Aspirina Tabletas 20 mg/5 ml,Antihipertensivo,22.9,2026-01-15
+P0092,Aspirina Tabletas,Antidepresivo,79.17,2026-02-18
+P0093,Glimepirida Inyección 5 mg,Antibiótico,70.86,2026-02-22
+P0094,Levotiroxina Cápsulas 20 mg/5 ml,Broncodilatador,148.12,2026-02-05
+P0095,Lorazepam Tabletas,Antihipertensivo,146.23,2026-01-16
+P0096,Omeprazol Inyección 5 mg,Corticoide,67.16,2026-02-20
+P0097,Dexametasona Inyección,Lipid-lowering,106.54,2026-01-06
+P0098,Hidroclorotiazida Inyección 250 mg,Corticoide,114.92,2026-02-03
+P0099,Metronidazol Jarabe,Antibiótico,90.02,2026-01-19
+P0100,Salbutamol Inyección 20 mg/5 ml,Antihipertensivo,12.45,2026-02-09
+P0101,Tramadol Cápsulas 5 mg,Antidepresivo,175.96,2026-02-23
+P0102,Diclofenaco Cápsulas 20 mg/5 ml,Lipid-lowering,199.5,2026-02-21
+P0103,Clonazepam Cápsulas,Antialérgico,29.26,2026-01-22
+P0104,Lorazepam Inyección 250 mg,Antidiabético,22.03,2026-02-19
+P0105,Ciprofloxacino Cápsulas 250 mg,Antiinflamatorio,137.37,2026-01-19
+P0106,Metronidazol Inyección 20 mg/5 ml,Antiinflamatorio,80.99,2026-01-15
+P0107,Ácido fólico Tabletas 250 mg,Antidepresivo,172.4,2026-01-01
+P0108,Levotiroxina Cápsulas 250 mg,Broncodilatador,38.64,2026-01-21
+P0109,Amoxicilina Inyección 250 mg,Ansiolítico,151.57,2026-02-28
+P0110,Clarithromicina Jarabe 500 mg,Antidiabético,188.4,2026-02-07
+P0111,Diclofenaco Cápsulas 5 mg,Antidiabético,28.14,2026-01-02
+P0112,Diclofenaco Tabletas 250 mg,Antialérgico,85.03,2026-02-13
+P0113,Atorvastatina Jarabe 20 mg/5 ml,Ansiolítico,133.3,2026-02-27
+P0114,Salbutamol Cápsulas 250 mg,Antibiótico,17.91,2026-01-02
+P0115,Clarithromicina Tabletas,Ansiolítico,155.98,2026-01-10
+P0116,Levotiroxina Tabletas 250 mg,Antialérgico,48.99,2026-02-02
+P0117,Alprazolam Inyección 5 mg,Ansiolítico,90.26,2026-01-04
+P0118,Tramadol Tabletas 500 mg,Lipid-lowering,153.95,2026-01-12
+P0119,Prednisona Tabletas 250 mg,Antibiótico,125.51,2026-02-16
+P0120,Lorazepam Jarabe 500 mg,Antialérgico,87.02,2026-02-19
+P0121,Hidroclorotiazida Tabletas,Corticoide,79.93,2026-02-09
+P0122,Levotiroxina Jarabe 500 mg,Antialérgico,6.2,2026-02-20
+P0123,Aspirina Inyección,Antidiabético,29.05,2026-02-15
+P0124,Paracetamol Cápsulas 5 mg,Antidepresivo,153.69,2026-01-02
+P0125,Hidroclorotiazida Cápsulas 20 mg/5 ml,Antidepresivo,114.56,2026-01-05
+P0126,Metronidazol Jarabe 500 mg,Antihipertensivo,127.28,2026-02-12
+P0127,Omeprazol Cápsulas,Broncodilatador,44.96,2026-02-22
+P0128,Omeprazol Tabletas,Corticoide,20.06,2026-01-10
+P0129,Paracetamol Tabletas 250 mg,Antidepresivo,86.58,2026-02-25
+P0130,Clonazepam Tabletas,Antibiótico,38.85,2026-02-14
+P0131,Prednisona Inyección 500 mg,Antidiabético,105.69,2026-01-22
+P0132,Salbutamol Tabletas 500 mg,Antibiótico,108.32,2026-01-22
+P0133,Ciprofloxacino Tabletas 5 mg,Broncodilatador,9.46,2026-01-28
+P0134,Ácido fólico Jarabe,Lipid-lowering,34.91,2026-01-24
+P0135,Atorvastatina Inyección 20 mg/5 ml,Antihipertensivo,181.05,2026-01-30
+P0136,Diclofenaco Inyección,Broncodilatador,153.76,2026-02-08
+P0137,Ciprofloxacino Tabletas,Antiinflamatorio,24.61,2026-02-03
+P0138,Prednisona Tabletas,Corticoide,26.16,2026-02-21
+P0139,Dexametasona Tabletas,Antiulceroso,63.69,2026-01-25
+P0140,Clonazepam Tabletas 500 mg,Broncodilatador,27.39,2026-02-15
+P0141,Gentamicina Cápsulas 20 mg/5 ml,Antibiótico,15.88,2026-01-12
+P0142,Gentamicina Inyección,Broncodilatador,156.33,2026-02-02
+P0143,Clonazepam Jarabe 5 mg,Antialérgico,97.72,2026-02-19
+P0144,Gentamicina Tabletas 5 mg,Antibiótico,87.34,2026-01-02
+P0145,Gentamicina Cápsulas 250 mg,Lipid-lowering,20.39,2026-02-17
+P0146,Omeprazol Jarabe 250 mg,Antiinflamatorio,97.04,2026-02-17
+P0147,Ibuprofeno Jarabe 5 mg,Antidiabético,18.84,2026-02-21
+P0148,Diclofenaco Cápsulas 250 mg,Antiulceroso,84.69,2026-01-17
+P0149,Metformina Cápsulas 5 mg,Antidepresivo,66.93,2026-02-05
+P0150,Clonazepam Jarabe 500 mg,Antibiótico,115.49,2026-02-02

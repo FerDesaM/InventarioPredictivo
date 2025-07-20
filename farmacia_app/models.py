@@ -1,4 +1,6 @@
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.db import models
+from django.contrib.auth.hashers import make_password, check_password
 
 class Farmacia(models.Model):
     nombre_farmacia = models.CharField(max_length=255)
@@ -20,22 +22,39 @@ class Producto(models.Model):
     def __str__(self):
         return self.product_id
 
+
+
 class Empleado(models.Model):
-    
+    dni       = models.CharField(max_length=20,unique=True)
     nombre    = models.CharField(max_length=100)
     apellido  = models.CharField(max_length=100)
-    dni       = models.CharField(max_length=20)
-    farmacia  = models.ForeignKey(Farmacia, on_delete=models.CASCADE)
+    password  = models.CharField(max_length=128)
+    es_admin  = models.BooleanField(default=False)
+    farmacia  = models.ForeignKey("Farmacia", on_delete=models.CASCADE)
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
 
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
+
 
 class Manager(models.Model):
     
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     farmacia = models.ForeignKey('Farmacia', on_delete=models.CASCADE)
-    password = models.CharField(max_length=128) 
+    password = models.CharField(max_length=128)
+    email = models.EmailField(unique=True)
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
 
     def __str__(self):
         return f"{self.nombre} {self.apellido}"

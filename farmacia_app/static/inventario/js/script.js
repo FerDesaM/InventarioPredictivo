@@ -1,5 +1,31 @@
 // Navigation functionality
 document.addEventListener('DOMContentLoaded', function() {
+
+
+    const formDiv = document.getElementById('form-compras');
+    const listDiv = document.getElementById('listado-compras');
+function mostrarForm(accion) {
+  if (accion === 'nueva' || '{{ compra_editar }}' !== '') {
+    document.getElementById('listado-compras').style.display = 'none';
+    document.getElementById('form-compras').style.display = 'block';
+  } else {
+    document.getElementById('form-compras').style.display = 'none';
+    document.getElementById('listado-compras').style.display = 'block';
+  }
+}
+    function postForm(accion, id) {
+      const f = document.createElement('form');
+      f.method = 'post';
+      f.action = '';
+      f.innerHTML = `
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="${accion}">
+        <input type="hidden" name="compra_id" value="${id}">
+      `;
+      document.body.appendChild(f);
+      f.submit();
+    }
+    if ('{{ compra_editar }}') mostrarForm('editar');
     // Navigation items
     const navItems = document.querySelectorAll('.nav-item a');
     const contentSections = document.querySelectorAll('.content-section');

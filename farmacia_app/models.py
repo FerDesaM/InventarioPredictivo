@@ -28,7 +28,7 @@ class Empleado(models.Model):
     dni       = models.CharField(max_length=20,unique=True)
     nombre    = models.CharField(max_length=100)
     apellido  = models.CharField(max_length=100)
-    password  = models.CharField(max_length=128)
+    password  = models.CharField(max_length=128, null=True, blank=True)
     es_admin  = models.BooleanField(default=False)
     farmacia  = models.ForeignKey("Farmacia", on_delete=models.CASCADE)
 
@@ -48,7 +48,7 @@ class Manager(models.Model):
     apellido = models.CharField(max_length=100)
     farmacia = models.ForeignKey('Farmacia', on_delete=models.CASCADE)
     password = models.CharField(max_length=128)
-    email = models.EmailField(unique=True)
+    email = models.CharField(max_length=128, null=True, blank=True)
 
     def set_password(self, raw_password):
         self.password = make_password(raw_password)

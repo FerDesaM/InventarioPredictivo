@@ -3,10 +3,10 @@ from sqlalchemy import create_engine, text
 
 # Parámetros de conexión desde DataGrip
 usuario = 'postgres'
-password = '123456'  # 👈 reemplaza esto por tu contraseña real
+password = 'Refreg12MiPas12'  # 👈 reemplaza esto por tu contraseña real
 host = 'localhost'
 puerto = '5432'
-nombre_bd = 'farm'
+nombre_bd = 'Farmacia'
 
 # Crear motor de conexión
 engine = create_engine(f'postgresql+psycopg2://{usuario}:{password}@{host}:{puerto}/{nombre_bd}')

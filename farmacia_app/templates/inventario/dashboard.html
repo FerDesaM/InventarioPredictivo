@@ -5,8 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario Predictivo - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'inventario/css/styles.css' %}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 <body>
     <!-- Header -->
@@ -348,7 +351,6 @@
                 </table>
             </div>
         </section>
-
 <script>
   const formDiv = document.getElementById('form-compras');
   const listDiv = document.getElementById('listado-compras');
@@ -395,65 +397,35 @@
   }
 </script>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        <!-- Predicción Section -->
         <section id="prediccion" class="content-section">
-            <div class="section-header">
+            <div class="section-header mb-3">
                 <h2>Predicción Inteligente</h2>
-                <button class="btn btn-secondary">Actualizar Predicciones</button>
             </div>
 
-            <div class="prediction-grid">
-                <div class="prediction-card">
-                    <h3>Recomendaciones de Compra</h3>
-                    <div class="recommendation-list">
-                        <div class="recommendation-item">
-                            <div class="product-info">
-                                <h4>Paracetamol 500mg</h4>
-                                <p>Cantidad sugerida: 200 unidades</p>
-                                <p>Razón: Tendencia al alza + Stock bajo</p>
-                            </div>
-                            <div class="recommendation-actions">
-                                <button class="btn btn-success btn-sm">Aprobar</button>
-                                <button class="btn btn-outline btn-sm">Modificar</button>
-                            </div>
-                        </div>
-                        <div class="recommendation-item">
-                            <div class="product-info">
-                                <h4>Vitamina D 1000UI</h4>
-                                <p>Cantidad sugerida: 150 unidades</p>
-                                <p>Razón: Estacionalidad (invierno)</p>
-                            </div>
-                            <div class="recommendation-actions">
-                                <button class="btn btn-success btn-sm">Aprobar</button>
-                                <button class="btn btn-outline btn-sm">Modificar</button>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Selector de producto y botón en una fila -->
+            <div class="d-flex align-items-end gap-2 flex-wrap mb-4">
+                <div>
+                    <label for="productoSelect" class="form-label">Selecciona un producto:</label>
+                    <select id="productoSelect" class="form-select w-auto">
+                        <option value="">-- Selecciona --</option>
+                        {% for p in productos %}
+                        <option value="{{ p.nombre_producto }}">{{ p.nombre_producto }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-
-                <div class="prediction-chart">
-                    <h3>Análisis de Tendencias</h3>
-                    <div class="chart-placeholder">
-                        <canvas id="trendsChart"></canvas>
-                    </div>
+                <div>
+                    <button id="btnPredecir" class="btn btn-primary">Predecir</button>
                 </div>
             </div>
+
+            <!-- Aquí se mostrarán los resultados -->
+            <div id="resultado-prediccion"></div>
+            <div id="grafico-ventas-container" class="mt-4"></div>
         </section>
+
+        
+        
+        
 
         <!-- Caducidad Section -->
         <section id="caducidad" class="content-section">
@@ -601,101 +573,50 @@
 
         <!-- Empleados Section -->
         <section id="empleados" class="content-section">
-            <div class="section-header">
-                <h2>Ranking de Empleados</h2>
-                <div class="period-selector">
-                    <select>
-                        <option>Mes actual</option>
-                        <option>Mes anterior</option>
-                        <option>Trimestre</option>
-                    </select>
-                </div>
+            <div class="section-header mb-3">
+                <h2>Ranking de Empleados por Mes y Año</h2>
             </div>
+        
+            <!-- Filtros -->
+            <div class="mb-4">
+                <label for="mesSelect">Selecciona mes:</label>
+                <select id="mesSelect" class="form-select d-inline-block" style="width:auto; margin-right: 10px;">
+                    <option value="">-- Mes --</option>
+                    <option value="January">Enero</option>
+                    <option value="February">Febrero</option>
+                    <option value="March">Marzo</option>
+                    <option value="April">Abril</option>
+                    <option value="May">Mayo</option>
+                    <option value="June">Junio</option>
+                    <option value="July">Julio</option>
+                    <option value="August">Agosto</option>
+                    <option value="September">Septiembre</option>
+                    <option value="October">Octubre</option>
+                    <option value="November">Noviembre</option>
+                    <option value="December">Diciembre</option>
+                </select>
+        
+                <select id="anioSelect" class="form-select d-inline-block" style="width:auto; margin-right: 10px;">
+                    <option value="">-- Año --</option>
+                    {% for a in años_disponibles %}
+                        <option value="{{ a }}">{{ a }}</option>
+                    {% endfor %}
+                </select>
+        
+                <button id="btnBuscarRanking" class="btn btn-primary">Aceptar</button>
 
-            <div class="employees-grid">
-                <div class="top-performers">
-                    <h3>Top 3 del Mes</h3>
-                    <div class="podium">
-                        <div class="podium-item second">
-                            <div class="employee-avatar">
-                                <img src="https://via.placeholder.com/60" alt="Empleado">
-                            </div>
-                            <h4>María García</h4>
-                            <p>$8,450 en ventas</p>
-                            <div class="medal silver">2°</div>
-                        </div>
-                        <div class="podium-item first">
-                            <div class="employee-avatar">
-                                <img src="https://via.placeholder.com/60" alt="Empleado">
-                            </div>
-                            <h4>Carlos López</h4>
-                            <p>$12,300 en ventas</p>
-                            <div class="medal gold">1°</div>
-                        </div>
-                        <div class="podium-item third">
-                            <div class="employee-avatar">
-                                <img src="https://via.placeholder.com/60" alt="Empleado">
-                            </div>
-                            <h4>Ana Rodríguez</h4>
-                            <p>$7,890 en ventas</p>
-                            <div class="medal bronze">3°</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="ranking-table">
-                    <h3>Ranking Completo</h3>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Posición</th>
-                                    <th>Empleado</th>
-                                    <th>Sucursal</th>
-                                    <th>Ventas</th>
-                                    <th>Productos Vendidos</th>
-                                    <th>Puntuación</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="rank-1">
-                                    <td>1</td>
-                                    <td>Carlos López</td>
-                                    <td>Farmacia Central</td>
-                                    <td>$12,300</td>
-                                    <td>245</td>
-                                    <td>98.5</td>
-                                </tr>
-                                <tr class="rank-2">
-                                    <td>2</td>
-                                    <td>María García</td>
-                                    <td>Farmacia Norte</td>
-                                    <td>$8,450</td>
-                                    <td>189</td>
-                                    <td>87.2</td>
-                                </tr>
-                                <tr class="rank-3">
-                                    <td>3</td>
-                                    <td>Ana Rodríguez</td>
-                                    <td>Farmacia Sur</td>
-                                    <td>$7,890</td>
-                                    <td>156</td>
-                                    <td>82.1</td>
-                                </tr>
-                                <tr>
-                                    <td>4</td>
-                                    <td>Pedro Martínez</td>
-                                    <td>Farmacia Este</td>
-                                    <td>$6,750</td>
-                                    <td>134</td>
-                                    <td>75.8</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            </div>
+        
+            <!-- Resultados -->
+            <div id="tablaRankingContainer"></div>
+            <div style="margin-top: 2rem;">
+                <canvas id="graficoRanking" style="max-width: 1000px; height: 450px; margin: 0 auto; display: block;"></canvas>
             </div>
         </section>
+        
+        
+        
+        
     </main>
 
     
@@ -767,7 +688,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script src="{% static 'inventario/js/script.js' %}"></script>
 </body>
 </html>
-

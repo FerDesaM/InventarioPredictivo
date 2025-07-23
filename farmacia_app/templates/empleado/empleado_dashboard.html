@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Empleado - {{ empleado.farmacia.nombre_farmacia }}</title>
+    <link rel="stylesheet" href="{% static 'empleado/css/empleado_dashboard.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1 class="header-title">
+                    <i class="fas fa-pills"></i>
+                    {{ empleado.farmacia.nombre_farmacia }}
+                </h1>
+                <span class="header-subtitle">Sistema de Inventario</span>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name">{{ empleado.nombre }} {{ empleado.apellido }}</span>
+                        <span class="user-role">Empleado</span>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item active">
+                        <a href="#" class="nav-link" data-section="inventory">
+                            <i class="fas fa-boxes"></i>
+                            <span>Inventario</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="sales">
+                            <i class="fas fa-cash-register"></i>
+                            <span>Ventas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="history">
+                            <i class="fas fa-history"></i>
+                            <span>Historial</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="reports">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Reportes</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <h3 class="stats-title">Resumen Rápido</h3>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-cubes"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="total-products">{{ inventory_summary.total_products|default:0 }}</span>
+                        <span class="stat-label">Productos</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon critical">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="low-stock-count">{{ low_stock_count|default:0 }}</span>
+                        <span class="stat-label">Stock Bajo</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="inventory-value">S/. {{ inventory_summary.total_inventory_value|default:0|floatformat:2 }}</span>
+                        <span class="stat-label">Valor Total</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Inventory Section -->
+            <section id="inventory-section" class="content-section active">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-boxes"></i>
+                        Gestión de Inventario
+                    </h2>
+                    <div class="section-actions">
+                        <button class="btn btn-primary" onclick="refreshInventory()">
+                            <i class="fas fa-sync-alt"></i>
+                            Actualizar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search and Filters -->
+                {% include 'empleado/components/search_form.html' %}
+
+                <!-- Inventory Table -->
+                {% include 'empleado/components/inventory_table.html' %}
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <span id="pagination-info">Mostrando 0 de 0 productos</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="btn btn-secondary" id="prev-page" onclick="changePage(-1)" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                            Anterior
+                        </button>
+                        <span class="page-numbers" id="page-numbers"></span>
+                        <button class="btn btn-secondary" id="next-page" onclick="changePage(1)" disabled>
+                            Siguiente
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sales Section -->
+            <section id="sales-section" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-cash-register"></i>
+                        Punto de Venta
+                    </h2>
+                </div>
+                
+                <div class="sales-content">
+                    <div class="sales-form-container">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Nueva Venta</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="sales-form">
+                                    <div class="form-group">
+                                        <label for="product-search">Buscar Producto</label>
+                                        <div class="search-input-container">
+                                            <input type="text" id="product-search" class="form-control" 
+                                                   placeholder="Nombre del producto o código de barras">
+                                            <button type="button" class="search-btn" onclick="searchProduct()">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                        <div id="product-suggestions" class="suggestions-dropdown"></div>
+                                    </div>
+                                    
+                                    <div id="selected-product" class="selected-product" style="display: none;">
+                                        <div class="product-info">
+                                            <h4 id="selected-product-name"></h4>
+                                            <p id="selected-product-details"></p>
+                                            <div class="product-stock">
+                                                <span>Stock disponible: </span>
+                                                <span id="selected-product-stock" class="stock-value"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="quantity">Cantidad</label>
+                                        <input type="number" id="quantity" class="form-control" min="1" placeholder="Cantidad a vender">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="receipt-type">Tipo de Comprobante</label>
+                                        <select id="receipt-type" class="form-control">
+                                            <option value="boleta">Boleta</option>
+                                            <option value="factura">Factura</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="sale-summary" id="sale-summary" style="display: none;">
+                                        <div class="summary-row">
+                                            <span>Subtotal:</span>
+                                            <span id="subtotal">S/. 0.00</span>
+                                        </div>
+                                        <div class="summary-row">
+                                            <span>IGV (18%):</span>
+                                            <span id="igv">S/. 0.00</span>
+                                        </div>
+                                        <div class="summary-row total">
+                                            <span>Total:</span>
+                                            <span id="total">S/. 0.00</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-actions">
+                                        <button type="button" class="btn btn-secondary" onclick="clearSaleForm()">
+                                            <i class="fas fa-times"></i>
+                                            Limpiar
+                                        </button>
+                                        <button type="button" class="btn btn-success" onclick="processSale()" id="process-sale-btn" disabled>
+                                            <i class="fas fa-shopping-cart"></i>
+                                            Procesar Venta
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="daily-summary-container">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Resumen del Día</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="daily-stats">
+                                    <div class="daily-stat">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-shopping-bag"></i>
+                                        </div>
+                                        <div class="stat-content">
+                                            <span class="stat-number" id="daily-sales-count">0</span>
+                                            <span class="stat-text">Ventas</span>
+                                        </div>
+                                    </div>
+                                    <div class="daily-stat">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-coins"></i>
+                                        </div>
+                                        <div class="stat-content">
+                                            <span class="stat-number" id="daily-revenue">S/. 0.00</span>
+                                            <span class="stat-text">Ingresos</span>
+                                        </div>
+                                    </div>
+                                    <div class="daily-stat">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-box"></i>
+                                        </div>
+                                        <div class="stat-content">
+                                            <span class="stat-number" id="daily-products-sold">0</span>
+                                            <span class="stat-text">Productos</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History Section -->
+            <section id="history-section" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-history"></i>
+                        Historial de Ventas
+                    </h2>
+                    <div class="section-actions">
+                        <select id="history-filter" class="form-control" onchange="loadSalesHistory()">
+                            <option value="7">Últimos 7 días</option>
+                            <option value="30" selected>Últimos 30 días</option>
+                            <option value="90">Últimos 90 días</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="history-table-container">
+                    <table class="table" id="history-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Total</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Comprobante</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <!-- Contenido dinámico -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="pagination-container">
+                    <div class="pagination-controls">
+                        <button class="btn btn-secondary" id="history-prev-page" onclick="changeHistoryPage(-1)" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                            Anterior
+                        </button>
+                        <span class="page-numbers" id="history-page-numbers"></span>
+                        <button class="btn btn-secondary" id="history-next-page" onclick="changeHistoryPage(1)" disabled>
+                            Siguiente
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports Section -->
+            <section id="reports-section" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Reportes y Estadísticas
+                    </h2>
+                </div>
+                
+                <div class="reports-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Productos con Stock Bajo</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="low-stock-list">
+                                <!-- Contenido dinámico -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Productos Más Vendidos</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="top-products-list">
+                                <!-- Contenido dinámico -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Sale Modal -->
+    {% include 'empleado/components/sale_modal.html' %}
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Cargando...</span>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="{% static 'empleado/js/inventory_crud.js' %}"></script>
+    <script src="{% static 'empleado/js/sales_handler.js' %}"></script>
+    <script src="{% static 'empleado/js/search_filter.js' %}"></script>
+    <script src="{% static 'empleado/js/main_dashboard.js' %}"></script>
+    
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+        });
+        
+        function logout() {
+            if (confirm('¿Está seguro que desea cerrar sesión?')) {
+                window.location.href = '{% url "logout" %}';
+            }
+        }
+    </script>
+</body>
+</html>
+

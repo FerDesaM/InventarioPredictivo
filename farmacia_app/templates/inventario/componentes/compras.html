@@ -1,46 +1,141 @@
 <!-- Sección Compras -->
-      <section id="compras" class="content-section">
-        <div class="section-header">
-          <h2>Gestión de Compras</h2>
-          <button class="btn btn-primary" onclick="mostrarForm('nueva')">
-            <i class="fas fa-plus"></i> Nueva Compra
-          </button>
-        </div>
+<style>
+    /* Contenedor principal */
+.content-section {
+  background: #f8f9fa;
+  border-radius: 14px;
+  padding: 24px 32px;
+  margin: 24px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* Titular de sección */
+.section-header h2 {
+  color: #3f51b5;
+  font-size: 2rem;
+  margin-bottom: 18px;
+  font-weight: bold;
+}
+
+/* Tabla de datos */
+.data-table {
+  border-collapse: collapse;
+  width: 100%;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+}
+.data-table th,
+.data-table td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+.data-table thead {
+  background: #e8eaf6;
+}
+.data-table th {
+  color: #3949ab;
+  font-weight: 600;
+}
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+.data-table tbody tr:hover {
+  background: #f1f8ff;
+}
+
+/* Formulario */
+#form-compras {
+  background: #fafbfc;
+  border-radius: 12px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.07);
+  padding: 24px;
+  max-width: 540px;
+  margin: 0 auto;
+}
+#form-compras h3 {
+  color: #27336c;
+  font-size: 1.3rem;
+  margin-bottom: 18px;
+}
+#form-compras label {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #444;
+}
+#form-compras input,
+#form-compras select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #bcc7e3;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+#form-compras button {
+  margin-right: 8px;
+  margin-top: 10px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.btn-success {
+  background: #388e3c;
+  color: #fff;
+}
+.btn-secondary {
+  background: #b0bec5;
+  color: #303030;
+}
+.btn-success:hover {
+  background: #43a047;
+}
+.btn-secondary:hover {
+  background: #78909c;
+}
+</style>      
+<section id="compras" class="content-section">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <h2>Gestión de Compras</h2>
+    
+  </div>
 
         <!-- Listado -->
-        <div id="listado-compras">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>ID</th><th>Producto</th><th>Farmacia</th><th>Proveedor</th>
-                <th>Cant.</th><th>Precio U.</th><th>Total</th><th>Fecha</th><th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-  {% if compras %}
-    {% for compra in compras %}
-      <tr>
-        <td>{{ compra.id }}</td>
-        <td>{{ compra.producto.nombre_producto }}</td>
-        <td>{{ compra.farmacia.nombre }}</td>
-        <td>{{ compra.cantidad }}</td>
-        <td>{{ compra.fecha_compra }}</td>
-        <td>{{ compra.precio_unitarioC }}</td>
-        <td>{{ compra.total_compra }}</td>
-        <p>Total compras: {{ compras|length }}</p>
-{% for c in compras %}
-  <p>ID: {{ c.id }} - Proveedor: {{ c.proveedor }}</p>
-{% endfor %}
-      </tr>
-    {% endfor %}
-  {% else %}
-    <tr><td colspan="9">No hay compras registradas</td></tr>
-  {% endif %}
-</tbody>
-          </table>
-        </div>
-
-        <!-- Formulario -->
+          <div id="listado-compras">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th><th>Producto</th><th>Farmacia</th><th>Proveedor</th>
+          <th>Cant.</th><th>Precio U.</th><th>Total</th><th>Fecha</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if compras %}
+        {% for compra in compras %}
+        <tr>
+            <td>{{ compra.id }}</td>
+            <td>{{ compra.producto.nombre_producto }}</td>
+            <td>{{ compra.farmacia.nombre_farmacia }}</td>
+            <td>{{ compra.proveedor }}</td>
+            <td>{{ compra.cantidad }}</td>
+            <td>{{ compra.precio_unitarioC }}</td>
+            <td>{{ compra.total_compra }}</td>
+            <td>{{ compra.fecha_compra }}</td>
+            <td></td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr><td colspan="9">No hay compras registradas</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
 <div id="form-compras" style="display:none;">
   <h3>{% if compra_editar %}Editar Compra #{{ compra_editar.id }}{% else %}Nueva Compra{% endif %}</h3>
   <form method="post" action="{% url 'compras' %}" id="compra-form">
@@ -80,7 +175,7 @@
     <label>Cantidad</label>
     <input type="number" name="cantidad" min="1" required value="{{ compra_editar.cantidad|default:'' }}">
 
-    <label>Precio Unitario</label>
+    <label>Costo Unitario</label>
     <input type="number" step="0.01" name="precio_unitarioC" min="0" required value="{{ compra_editar.precio_unitarioC|default:'' }}">
 
     <label>Fecha Compra</label>
@@ -91,42 +186,47 @@
   </form>
 </div>
       </section>
-      <script>
-function mostrarForm(accion) {
-  const form = document.getElementById("form-compras");
-  const listado = document.getElementById("listado-compras");
+<script>
+  const listadoCompras = document.getElementById('listado-compras');
+  const formCompras = document.getElementById('form-compras');
 
-  if (accion === "nueva") {
-    form.style.display = "block";
-    listado.style.display = "none";
-    form.reset?.();
-  } else {
-    form.style.display = "none";
-    listado.style.display = "block";
-  }
-}
 
-function postForm(accion, compraId = null) {
-  const form = document.getElementById("compra-form");
-  const formData = new FormData(form);
-  formData.set("accion", accion);
-  if (compraId) {
-    formData.set("compra_id", compraId);
+
+  function mostrarForm(accion) {
+    if (accion === "nueva") {
+      formCompras.style.display = "block";
+      listadoCompras.style.display = "none";
+      formCompras.reset?.();
+      // Habilitamos el botón nuevamente
+      btnHistorial.disabled = false;
+      btnHistorial.textContent = "Historial de Compras";
+    } else {
+      formCompras.style.display = "none";
+      listadoCompras.style.display = "block";
+    }
   }
 
-  fetch("{% url 'compras' %}", {
-    method: "POST",
-    body: formData,
-    headers: {
-      "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
-    },
-  })
+  function postForm(accion, compraId = null) {
+    const form = document.getElementById("compra-form");
+    const formData = new FormData(form);
+    formData.set("accion", accion);
+    if (compraId) {
+      formData.set("compra_id", compraId);
+    }
+
+    fetch("{% url 'compras' %}", {
+      method: "POST",
+      body: formData,
+      headers: {
+        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+      },
+    })
     .then(response => response.json())
     .then(data => {
       if (data.status === "success") {
         alert(data.message || "Operación exitosa");
-        mostrarForm("");
-        location.reload(); // Refrescar la página para ver los cambios
+        mostrarForm(""); // Mostrar el historial nuevamente
+        location.reload();
       } else {
         alert(data.message || "Hubo un error");
       }
@@ -135,10 +235,10 @@ function postForm(accion, compraId = null) {
       console.error("Error:", error);
       alert("Error en la solicitud");
     });
-}
+  }
 
-document.getElementById("compra-form")?.addEventListener("submit", function (e) {
-  e.preventDefault();
-  postForm("nueva");
-});
+  document.getElementById("compra-form")?.addEventListener("submit", function (e) {
+    e.preventDefault();
+    postForm("nueva");
+  });
 </script>

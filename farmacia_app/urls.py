@@ -48,5 +48,7 @@ urlpatterns = [
     # APIs de búsqueda
     path('api/empleado/sugerencias/', api_get_suggestions, name='api_empleado_sugerencias'),
     path('api/empleado/codigo/<str:barcode>/', api_search_by_barcode, name='api_empleado_codigo'),
-
+    path('compras/', views.compras_view, name='compras'),
+    path('compras/', views.listar_compras, name='listar_compras')
 ]
+    

@@ -1,0 +1,144 @@
+<!-- Sección Compras -->
+      <section id="compras" class="content-section">
+        <div class="section-header">
+          <h2>Gestión de Compras</h2>
+          <button class="btn btn-primary" onclick="mostrarForm('nueva')">
+            <i class="fas fa-plus"></i> Nueva Compra
+          </button>
+        </div>
+
+        <!-- Listado -->
+        <div id="listado-compras">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>Producto</th><th>Farmacia</th><th>Proveedor</th>
+                <th>Cant.</th><th>Precio U.</th><th>Total</th><th>Fecha</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+  {% if compras %}
+    {% for compra in compras %}
+      <tr>
+        <td>{{ compra.id }}</td>
+        <td>{{ compra.producto.nombre_producto }}</td>
+        <td>{{ compra.farmacia.nombre }}</td>
+        <td>{{ compra.cantidad }}</td>
+        <td>{{ compra.fecha_compra }}</td>
+        <td>{{ compra.precio_unitarioC }}</td>
+        <td>{{ compra.total_compra }}</td>
+        <p>Total compras: {{ compras|length }}</p>
+{% for c in compras %}
+  <p>ID: {{ c.id }} - Proveedor: {{ c.proveedor }}</p>
+{% endfor %}
+      </tr>
+    {% endfor %}
+  {% else %}
+    <tr><td colspan="9">No hay compras registradas</td></tr>
+  {% endif %}
+</tbody>
+          </table>
+        </div>
+
+        <!-- Formulario -->
+<div id="form-compras" style="display:none;">
+  <h3>{% if compra_editar %}Editar Compra #{{ compra_editar.id }}{% else %}Nueva Compra{% endif %}</h3>
+  <form method="post" action="{% url 'compras' %}" id="compra-form">
+    {% csrf_token %}
+    <input type="hidden" name="accion" value="{% if compra_editar %}editar{% else %}nueva{% endif %}">
+    {% if compra_editar %}
+      <input type="hidden" name="compra_id" value="{{ compra_editar.id }}">
+    {% endif %}
+    <label>Farmacia</label>
+    <select name="farmacia" required>
+      <option value="">--</option>
+      {% for f in farmacias %}
+      <option value="{{ f.id }}" {% if compra_editar and f.id == compra_editar.farmacia.id %}selected{% endif %}>
+        {{ f.nombre_farmacia }}
+      </option>
+      {% endfor %}
+    </select>
+
+<label for="producto">Producto:</label>
+<select name="producto" id="producto" required>
+  <option value="">--Seleccione un producto--</option>
+  {% for p in productos %}
+    <option value="{{ p.product_id }}">{{ p.nombre_producto }}</option>
+  {% endfor %}
+</select>
+
+    <label>Proveedor</label>
+<select name="proveedor" required>
+  <option value="">--Seleccione un proveedor--</option>
+  <option value="Distribuidora Médica Lima" {% if compra_editar.proveedor == "Distribuidora Médica Lima" %}selected{% endif %}>Distribuidora Médica Lima</option>
+  <option value="Farmacéutica Nacional" {% if compra_editar.proveedor == "Farmacéutica Nacional" %}selected{% endif %}>Farmacéutica Nacional</option>
+  <option value="Laboratorios del Sur" {% if compra_editar.proveedor == "Laboratorios del Sur" %}selected{% endif %}>Laboratorios del Sur</option>
+  <option value="Droguería Central" {% if compra_editar.proveedor == "Droguería Central" %}selected{% endif %}>Droguería Central</option>
+  <option value="Importadora Médica" {% if compra_editar.proveedor == "Importadora Médica" %}selected{% endif %}>Importadora Médica</option>
+</select>
+
+    <label>Cantidad</label>
+    <input type="number" name="cantidad" min="1" required value="{{ compra_editar.cantidad|default:'' }}">
+
+    <label>Precio Unitario</label>
+    <input type="number" step="0.01" name="precio_unitarioC" min="0" required value="{{ compra_editar.precio_unitarioC|default:'' }}">
+
+    <label>Fecha Compra</label>
+    <input type="date" name="fecha_compra"
+  value="{% if compra_editar %}{{ compra_editar.fecha_compra|date:'Y-m-d' }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}">
+    <button type="submit" class="btn btn-success">{% if compra_editar %}Actualizar{% else %}Guardar{% endif %}</button>
+    <button type="button" class="btn btn-secondary" onclick="mostrarForm('')">Cancelar</button>
+  </form>
+</div>
+      </section>
+      <script>
+function mostrarForm(accion) {
+  const form = document.getElementById("form-compras");
+  const listado = document.getElementById("listado-compras");
+
+  if (accion === "nueva") {
+    form.style.display = "block";
+    listado.style.display = "none";
+    form.reset?.();
+  } else {
+    form.style.display = "none";
+    listado.style.display = "block";
+  }
+}
+
+function postForm(accion, compraId = null) {
+  const form = document.getElementById("compra-form");
+  const formData = new FormData(form);
+  formData.set("accion", accion);
+  if (compraId) {
+    formData.set("compra_id", compraId);
+  }
+
+  fetch("{% url 'compras' %}", {
+    method: "POST",
+    body: formData,
+    headers: {
+      "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+    },
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === "success") {
+        alert(data.message || "Operación exitosa");
+        mostrarForm("");
+        location.reload(); // Refrescar la página para ver los cambios
+      } else {
+        alert(data.message || "Hubo un error");
+      }
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      alert("Error en la solicitud");
+    });
+}
+
+document.getElementById("compra-form")?.addEventListener("submit", function (e) {
+  e.preventDefault();
+  postForm("nueva");
+});
+</script>

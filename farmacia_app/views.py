@@ -369,6 +369,15 @@ def compras_view(request):
                     precio_unitarioC=precio_unitario,
                     total_compra=total_compra,
                 )
+                inventario, creado = InventarioFarmacia.objects.get_or_create(
+                    farmacia_id=farmacia_id,
+                    producto_id=producto_id,
+                    defaults={'stock': cantidad}
+                )
+
+                if not creado:
+                    inventario.stock += cantidad
+                    inventario.save()
 
                 return JsonResponse({
                     "status": "success",
@@ -388,8 +397,9 @@ def compras_view(request):
     # Para GET, mostrar la página con el formulario
     farmacias = Farmacia.objects.all()
     productos = Producto.objects.all()
-    compras = Compra.objects.all().order_by('-fecha_compra')
+    compras = Compra.objects.all().order_by('-fecha_compra')[:10]
     print("Compras en template:", [c.id for c in compras])
+    
     return render(request, "inventario/componentes/compras.html", {
         "farmacias": farmacias,
         "productos": productos,

@@ -1,0 +1,25 @@
+<section id="prediccion" class="content-section">
+            <div class="section-header mb-3">
+                <h2>Predicción Inteligente</h2>
+            </div>
+
+            <!-- Selector de producto y botón en una fila -->
+            <div class="d-flex align-items-end gap-2 flex-wrap mb-4">
+                <div>
+                    <label for="productoSelect" class="form-label">Selecciona un producto:</label>
+                    <select id="productoSelect" class="form-select w-auto">
+                        <option value="">-- Selecciona --</option>
+                        {% for p in productos %}
+                        <option value="{{ p.nombre_producto }}">{{ p.nombre_producto }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <button id="btnPredecir" class="btn btn-primary">Predecir</button>
+                </div>
+            </div>
+
+            <!-- Aquí se mostrarán los resultados -->
+            <div id="resultado-prediccion"></div>
+            <div id="grafico-ventas-container" class="mt-4"></div>
+        </section>

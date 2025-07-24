@@ -46,6 +46,7 @@ def dashboard_view(request):
         'alertas': alertas,
         'today': timezone.now().date(),
         'compra_editar': None,
+        
     }
 
     if seccion == 'compras':
@@ -343,3 +344,57 @@ def empleado_dashboard(request):
 def logout_view(request):
     request.session.flush()
     return redirect('login')
+def compras_view(request):
+    if request.method == "POST":
+        print("Datos del formulario recibidos:", request.POST)
+        accion = request.POST.get("accion")
+
+        if accion == "nueva":
+            try:
+                farmacia_id = request.POST.get("farmacia")
+                producto_id = request.POST.get("producto")
+                proveedor = request.POST.get("proveedor")
+                cantidad = int(request.POST.get("cantidad"))
+                fecha_compra = request.POST.get("fecha_compra")
+                precio_unitario = float(request.POST.get("precio_unitarioC"))
+
+                total_compra = cantidad * precio_unitario
+
+                nueva_compra = Compra.objects.create(
+                    farmacia_id=farmacia_id,
+                    producto_id=producto_id,
+                    proveedor=proveedor,
+                    cantidad=cantidad,
+                    fecha_compra=fecha_compra,
+                    precio_unitarioC=precio_unitario,
+                    total_compra=total_compra,
+                )
+
+                return JsonResponse({
+                    "status": "success",
+                    "message": "Compra registrada correctamente.",
+                    "compra_id": nueva_compra.id
+                })
+
+            except Exception as e:
+                return JsonResponse({
+                    "status": "error",
+                    "message": f"Error al registrar la compra: {str(e)}"
+                })
+
+        else:
+            return JsonResponse({"status": "error", "message": "Acción no válida"})
+
+    # Para GET, mostrar la página con el formulario
+    farmacias = Farmacia.objects.all()
+    productos = Producto.objects.all()
+    compras = Compra.objects.all().order_by('-fecha_compra')
+    print("Compras en template:", [c.id for c in compras])
+    return render(request, "inventario/componentes/compras.html", {
+        "farmacias": farmacias,
+        "productos": productos,
+        "compras": compras
+    })
+def listar_compras(request):
+    compras = Compra.objects.all().select_related("producto", "farmacia").order_by("-fecha_compra")
+    return render(request, 'compras/listado.html', {'compras': compras})

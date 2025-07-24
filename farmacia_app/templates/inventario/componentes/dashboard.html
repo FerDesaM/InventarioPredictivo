@@ -1,0 +1,100 @@
+<section id="dashboard" class="content-section active">
+            <div class="section-header">
+                <h2>Dashboard Principal</h2>
+                <div class="date-filter">
+                    <select>
+                        <option>Últimos 7 días</option>
+                        <option>Últimos 30 días</option>
+                        <option>Último mes</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.total_productos }}</h3>
+                        <p>Productos en Stock</p>
+                        <span class="stat-change positive">+5.2%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.stock_bajo }}</h3>
+                        <p>Stock Bajo</p>
+                        <span class="stat-change negative">+12</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.proximos_vencer }}</h3>
+                        <p>Próximos a Vencer</p>
+                        <span class="stat-change negative">+8</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>${{ stats.ventas_mes }}</h3>
+                        <p>Ventas del Mes</p>
+                        <span class="stat-change positive">+8.7%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.compras_mes }}</h3>
+                        <p>Compras del Mes</p>
+                        <span class="stat-change positive">+{{ stats.compras_pendientes }} pendientes</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>${{ stats.total_compras_mes|floatformat:2 }}</h3>
+                        <p>Inversión en Compras</p>
+                        <span class="stat-change positive">+8.7%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts and Tables -->
+            <div class="dashboard-grid">
+                <div class="chart-container">
+                    <h3>Ventas por Mes</h3>
+                    <div class="chart-placeholder">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+                <div class="alerts-container">
+                    <h3>Alertas Recientes</h3>
+                    <div class="alerts-list">
+                        {% for alerta in alertas %}
+                        <div class="alert-item {{ alerta.tipo }}">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div class="alert-content">
+                                <p>{{ alerta.mensaje }}</p>
+                                <span>{{ alerta.tiempo }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>

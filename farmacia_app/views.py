@@ -375,6 +375,16 @@ def compras_view(request):
                     precio_unitarioC=precio_unitario,
                     total_compra=total_compra,
                 )
+                inventario, creado = InventarioFarmacia.objects.get_or_create(
+                    farmacia_id=farmacia_id,
+                    producto_id=producto_id,
+                    defaults={'stock': cantidad}
+                )
+                
+                if not creado:
+                    inventario.stock += cantidad
+                    inventario.save()
+            
 
                 return JsonResponse({
                     "status": "success",
@@ -387,6 +397,7 @@ def compras_view(request):
                     "status": "error",
                     "message": f"Error al registrar la compra: {str(e)}"
                 })
+                
 
         else:
             return JsonResponse({"status": "error", "message": "Acción no válida"})
@@ -394,12 +405,14 @@ def compras_view(request):
     # Para GET, mostrar la página con el formulario
     farmacias = Farmacia.objects.all()
     productos = Producto.objects.all()
-    compras = Compra.objects.all().order_by('-fecha_compra')
-    print("Compras en template:", [c.id for c in compras])
-    return render(request, "inventario/componentes/compras.html", {
+    compras = Compra.objects.all().order_by('-fecha_compra')[:10]
+    context = {
         "farmacias": farmacias,
         "productos": productos,
-        "compras": compras
+        "compras": compras,
+        "today": datetime.now().date() if 'datetime' in globals() else None
+    }
+    return render(request, "compras.html", {
     })
 def listar_compras(request):
     compras = Compra.objects.all().select_related("producto", "farmacia").order_by("-fecha_compra")

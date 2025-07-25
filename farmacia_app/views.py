@@ -9,7 +9,6 @@ from datetime import date
 from collections import defaultdict
 from django.http import JsonResponse
 from dateutil.relativedelta import relativedelta
- asegúrate de tener esta importación arriba
 from django.utils.timezone import now
 from django.db.models import Sum
 import calendar

@@ -54,6 +54,86 @@ A continuación, se presenta el diagrama de clases que ilustra la estructura de 
 
 ![Diagrama de Clases](https://private-us-east-1.manuscdn.com/sessionFile/ghwrfj97U6FCScaR2M3ZMs/sandbox/HLYcYMUEjMCBv2QF0tVIT7-images_1753459182715_na1fn_L2hvbWUvdWJ1bnR1L3VwbG9hZC9JbnZlbnRhcmlvUHJlZGljdGl2by9jbGFzc19kaWFncmFt.png?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvZ2h3cmZqOTdVNkZDU2NhUjJNM1pNcy9zYW5kYm94L0hMWWNZTVVFak1DQnYyUUYwdFZJVDctaW1hZ2VzXzE3NTM0NTkxODI3MTVfbmExZm5fTDJodmJXVXZkV0oxYm5SMUwzVndiRzloWkM5SmJuWmxiblJoY21sdlVISmxaR2xqZEdsMmJ5OWpiR0Z6YzE5a2FXRm5jbUZ0LnBuZyIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5ODc2MTYwMH19fV19&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=afM6yzvfe4nhpl1OAoiS2qw7TTLqO7tgS4-P3Lk6kmLPQFbq3Pv8tbb672kvKJFZwgAHzR2QGxb06zLJij~OjrILMjqFNOIAxbkovlwAjAd4Xpvp6xB-3grP6rM2ChKPX62YLZttZDSiP78W-JsC228LeMjUndQuBDskQt1rgtcw1UJaw2Sp6uWNUWcveY-5AEQCysADPNPs4tb29iPntU-9TAFNqnsI5YDKLiVEAf1R77D9scu6Z00cNZAZ53qwZAlkEoXx71fs7W8ivcJSFDzjOW5tv8mxc9ua2jOGTbrbsGd8vBsnpfBbQd4rqlOgPK5Bwf7QyFHNWveEcxXVFQ__)
 
+# Diagrama Entidad-Relación (ERD)
+
+```mermaid
+erDiagram
+    FARMACIA ||--o{ EMPLEADO : tiene
+    FARMACIA ||--o{ MANAGER : tiene
+    FARMACIA ||--o{ INVENTARIO_FARMACIA : posee
+    FARMACIA ||--o{ COMPRA : realiza
+    PRODUCTO ||--o{ INVENTARIO_FARMACIA : contiene
+    PRODUCTO ||--o{ VENTA : vendido_en
+    PRODUCTO ||--o{ COMPRA : comprado_en
+    EMPLEADO ||--o{ VENTA : realiza
+    
+    FARMACIA {
+        string nombre_farmacia PK
+        string distrito
+        string ciudad
+        string pais
+    }
+    
+    PRODUCTO {
+        string product_id PK
+        string nombre_producto
+        string clase
+        float precio_unitario
+        date fecha_vencimiento
+    }
+    
+    EMPLEADO {
+        string dni PK
+        string nombre
+        string apellido
+        string password
+        boolean es_admin
+        int farmacia FK
+    }
+    
+    MANAGER {
+        int id PK
+        string nombre
+        string apellido
+        string password
+        string email
+        int farmacia FK
+    }
+    
+    INVENTARIO_FARMACIA {
+        int farmacia FK
+        string producto FK
+        int stock
+        PK (farmacia, producto)
+    }
+    
+    VENTA {
+        int codigo_venta PK
+        string producto FK
+        string empleado FK
+        int quantity
+        int dia
+        string month
+        int year
+        float sales
+        float igv
+        float total
+        string moneda
+        string estado
+        string tipo_comp
+    }
+    
+    COMPRA {
+        int id PK
+        int farmacia FK
+        string producto FK
+        string proveedor
+        int cantidad
+        date fecha_compra
+        float precio_unitarioC
+        float total_compra
+    }
+
 ## Instalación y Configuración
 
 Para poner en marcha el proyecto en tu entorno local, sigue los siguientes pasos:

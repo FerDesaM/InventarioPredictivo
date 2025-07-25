@@ -1,55 +1,109 @@
 <section id="caducidad" class="content-section">
-            <div class="section-header">
-                <h2>Gestión de Caducidad</h2>
-                <button class="btn btn-warning">Generar Ofertas</button>
-            </div>
+    <div class="section-header">
+        <h2>Gestión de Caducidad</h2>
+        
+    </div>
 
-            <div class="expiry-grid">
-                <div class="expiry-alerts">
-                    <h3>Productos Próximos a Vencer</h3>
-                    <div class="expiry-list">
-                        <div class="expiry-item urgent">
-                            <div class="product-details">
-                                <h4>Ibuprofeno 400mg</h4>
-                                <p>Lote: IBU2024-08</p>
-                                <p>Vence: 2025-08-20 (15 días)</p>
-                                <p>Stock: 120 unidades</p>
-                            </div>
-                            <div class="expiry-actions">
-                                <button class="btn btn-warning btn-sm">Crear Oferta</button>
-                                <button class="btn btn-info btn-sm">Transferir</button>
-                            </div>
-                        </div>
-                        <div class="expiry-item warning">
-                            <div class="product-details">
-                                <h4>Amoxicilina 500mg</h4>
-                                <p>Lote: AMX2024-09</p>
-                                <p>Vence: 2025-09-15 (25 días)</p>
-                                <p>Stock: 80 unidades</p>
-                            </div>
-                            <div class="expiry-actions">
-                                <button class="btn btn-warning btn-sm">Crear Oferta</button>
-                                <button class="btn btn-info btn-sm">Transferir</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="offers-panel">
-                    <h3>Ofertas Activas</h3>
-                    <div class="offers-list">
-                        <div class="offer-item">
-                            <div class="offer-info">
-                                <h4>Ibuprofeno 400mg</h4>
-                                <p>Descuento: 30%</p>
-                                <p>Precio original: $3.20</p>
-                                <p>Precio oferta: $2.24</p>
-                            </div>
-                            <div class="offer-status">
-                                <span class="status-badge success">Activa</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <div class="expiry-grid">
+        <div class="expiry-alerts">
+            <h3>Productos Próximos a Vencer</h3>
+            <div class="expiry-list" id="productos-caducidad-container">
+                <!-- Los productos se insertarán aquí dinámicamente -->
+                <p class="loading-message">Cargando productos próximos a vencer...</p>
             </div>
-        </section>
+        </div>
+
+        
+    </div>
+</section>
+
+<script>
+
+// Función para cargar los productos próximos a vencer
+function cargarProductosProximosAVencer() {
+    const container = document.getElementById('productos-caducidad-container');
+    
+    fetch('/api/caducidad/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.productos_caducidad && data.productos_caducidad.length > 0) {
+                container.innerHTML = ''; // Limpiar el contenedor
+                
+                data.productos_caducidad.forEach(producto => {
+                    const item = document.createElement('div');
+                    let urgencyClass = '';
+                    
+                    if (producto.dias_restantes <= 30) {
+                        urgencyClass = 'urgent';
+                    } else if (producto.dias_restantes <= 60) {
+                        urgencyClass = 'warning';
+                    }
+                    
+                    item.className = `expiry-item ${urgencyClass}`;
+                    item.innerHTML = `
+                        <div class="product-details">
+                            <h4>${producto.nombre_producto}</h4>
+                            <p>ID: ${producto.product_id}</p>
+                            <p>Clase: ${producto.clase}</p>
+                            <p>Precio Unitario: $${producto.precio_unitario.toFixed(2)}</p>
+                            <p>Vence: ${producto.fecha_vencimiento} (${producto.dias_restantes} días)</p>
+                        </div>
+                        <div class="expiry-actions">
+                            <button class="btn btn-warning btn-sm" onclick="reducirPrecio('${producto.product_id}')">Reducir Precio</button>
+                        </div>
+                    `;
+                    
+                    container.appendChild(item);
+                });
+            } else {
+                container.innerHTML = '<p>No hay productos próximos a vencer en los próximos 30 días.</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar productos:', error);
+            container.innerHTML = '<p>Error al cargar los productos próximos a vencer. Por favor, intente nuevamente.</p>';
+        });
+}
+
+// Llamar a la función cuando la página se cargue
+document.addEventListener('DOMContentLoaded', cargarProductosProximosAVencer);
+
+// Función para reducir precio (la que ya tenías)
+function reducirPrecio(productId) {
+    fetch(`/reducir_precio/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'), // Necesitarás una función para obtener el CSRF token
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 'product_id': productId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        if (data.status === 'success') {
+            cargarProductosProximosAVencer(); // Recargar los productos
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Hubo un error al intentar reducir el precio.');
+    });
+}
+
+// Función auxiliar para obtener el CSRF token (necesaria para las peticiones POST)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>

@@ -697,7 +697,48 @@ function renderGraficoEmpleados(ranking) {
     });
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    const filtro = document.getElementById("filtroFarmacia");
+    const botonBuscar = document.getElementById("btnBuscarInventario");
 
+    function cargarInventario(farmaciaId = "todas") {
+        fetch(`/inventario/filtrado/?farmacia_id=${farmaciaId}`)
+            .then(res => res.json())
+            .then(data => {
+                const cuerpo = document.getElementById("cuerpoInventario");
+                cuerpo.innerHTML = "";
+
+                if (data.inventario.length === 0) {
+                    console.log("✔️ Búsqueda completada: sin resultados.");
+                    cuerpo.innerHTML = `<tr><td colspan="6" class="text-center">No hay productos en inventario</td></tr>`;
+                    return;
+                }
+
+                data.inventario.forEach(item => {
+                    cuerpo.innerHTML += `
+                        <tr>
+                            <td>${item.farmacia}</td>
+                            <td>${item.producto}</td>
+                            <td>${item.clase}</td>
+                            <td>S/. ${item.precio.toFixed(2)}</td>
+                            <td>${item.stock}</td>
+                            <td>${item.vencimiento}</td>
+                        </tr>`;
+                });
+
+                console.log("✔️ Inventario cargado correctamente para la farmacia ID:", farmaciaId);
+            })
+            .catch(err => {
+                console.error("❌ Error al cargar inventario:", err);
+            });
+    }
+
+    // Buscar cuando se hace clic
+    botonBuscar.addEventListener("click", function () {
+        const farmaciaSeleccionada = filtro.value;
+        cargarInventario(farmaciaSeleccionada);
+    });
+});
 
 // Export functions for potential use in other scripts
 window.InventoryApp = {

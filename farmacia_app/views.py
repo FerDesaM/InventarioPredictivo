@@ -408,3 +408,25 @@ def compras_view(request):
 def listar_compras(request):
     compras = Compra.objects.all().select_related("producto", "farmacia").order_by("-fecha_compra")
     return render(request, 'compras/listado.html', {'compras': compras})
+
+
+
+def inventario_filtrado(request):
+    farmacia_id = request.GET.get('farmacia_id')
+    inventario_qs = InventarioFarmacia.objects.select_related('farmacia', 'producto')
+
+    if farmacia_id and farmacia_id != 'todas':
+        inventario_qs = inventario_qs.filter(farmacia_id=farmacia_id)
+
+    data = []
+    for item in inventario_qs:
+        data.append({
+            'farmacia': item.farmacia.nombre_farmacia,
+            'producto': item.producto.nombre_producto,
+            'clase': item.producto.clase,
+            'precio': item.producto.precio_unitario,
+            'stock': item.stock,
+            'vencimiento': item.producto.fecha_vencimiento.strftime('%Y-%m-%d'),
+        })
+
+    return JsonResponse({'inventario': data})

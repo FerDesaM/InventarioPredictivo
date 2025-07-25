@@ -31,6 +31,7 @@ urlpatterns = [
     path('api/empleado/resumen-diario/', api_resumen_diario_simple, name='api_empleado_resumen_diario_simple'),
 
     path('compras/', views.compras_view, name='compras'),
+    path('inventario/filtrado/', views.inventario_filtrado, name='inventario_filtrado'),
     path('compras/', views.listar_compras, name='listar_compras')
 ]
     

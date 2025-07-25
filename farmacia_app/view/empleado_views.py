@@ -1,25 +1,23 @@
 """
-Vistas para el Dashboard de Empleados
-Maneja las operaciones CRUD del inventario para empleados
+Vistas Simplificadas para el Dashboard de Empleados
+Maneja solo búsqueda y ventas básicas
 """
 
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required
 import json
+from datetime import datetime, date
 
-from farmacia_app.models import Empleado
-from farmacia_app.modules.inventory_module import InventoryManager
-from farmacia_app.modules.sales_module import SalesManager
-from farmacia_app.modules.search_module import SearchManager
-from farmacia_app.modules.validation_module import ValidationManager
+from farmacia_app.models import Empleado, InventarioFarmacia, Producto, Venta
+from django.db.models import Q, Sum, Max
+from django.db import transaction
 
 
-def empleado_dashboard(request):
+def empleado_dashboard_simple(request):
     """
-    Vista principal del dashboard de empleado
+    Vista principal del dashboard simplificado de empleado
     """
     empleado_dni = request.session.get('dni')
     if not empleado_dni:
@@ -28,21 +26,8 @@ def empleado_dashboard(request):
     try:
         empleado = Empleado.objects.get(dni=empleado_dni)
         
-        # Inicializar managers
-        inventory_manager = InventoryManager(empleado.farmacia.id)
-        search_manager = SearchManager(empleado.farmacia.id)
-        
-        # Obtener datos iniciales
-        inventory_summary = inventory_manager.get_inventory_summary()
-        filter_options = search_manager.get_filter_options()
-        low_stock_products = inventory_manager.get_low_stock_products()
-        
         context = {
             'empleado': empleado,
-            'inventory_summary': inventory_summary.get('data', {}),
-            'filter_options': filter_options.get('options', {}),
-            'low_stock_products': low_stock_products.get('data', []),
-            'low_stock_count': low_stock_products.get('count', 0)
         }
         
         return render(request, 'empleado/empleado_dashboard.html', context)
@@ -53,36 +38,9 @@ def empleado_dashboard(request):
 
 @csrf_exempt
 @require_http_methods(["GET"])
-def api_get_inventory(request):
+def api_buscar_medicamento(request):
     """
-    API para obtener el inventario de la farmacia del empleado
-    """
-    empleado_dni = request.session.get('dni')
-    if not empleado_dni:
-        return JsonResponse({'success': False, 'error': 'No autenticado'}, status=401)
-    
-    try:
-        empleado = Empleado.objects.get(dni=empleado_dni)
-        inventory_manager = InventoryManager(empleado.farmacia.id)
-        
-        # Obtener parámetros de paginación
-        page = int(request.GET.get('page', 1))
-        per_page = int(request.GET.get('per_page', 10))
-        
-        result = inventory_manager.get_inventory_by_pharmacy(page, per_page)
-        return JsonResponse(result)
-        
-    except Empleado.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Empleado no encontrado'}, status=404)
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def api_search_products(request):
-    """
-    API para búsqueda de productos con filtros
+    API simplificada para buscar medicamentos
     """
     empleado_dni = request.session.get('dni')
     if not empleado_dni:
@@ -90,58 +48,38 @@ def api_search_products(request):
     
     try:
         empleado = Empleado.objects.get(dni=empleado_dni)
-        search_manager = SearchManager(empleado.farmacia.id)
-        validation_manager = ValidationManager(empleado_dni)
+        query = request.GET.get('query', '').strip()
         
-        # Validar parámetros de búsqueda
-        search_params = dict(request.GET)
-        # Convertir listas de un elemento a strings
-        for key, value in search_params.items():
-            if isinstance(value, list) and len(value) == 1:
-                search_params[key] = value[0]
+        if not query:
+            return JsonResponse({'success': False, 'error': 'Término de búsqueda requerido'}, status=400)
         
-        validation_result = validation_manager.validate_search_parameters(search_params)
-        if not validation_result['valid']:
-            return JsonResponse({
-                'success': False, 
-                'errors': validation_result['errors']
-            }, status=400)
+        # Buscar productos en el inventario de la farmacia
+        productos = InventarioFarmacia.objects.filter(
+            farmacia_id=empleado.farmacia.id,
+            stock__gt=0  # Solo productos con stock
+        ).filter(
+            Q(producto__nombre_producto__icontains=query) |
+            Q(producto__product_id__icontains=query) |
+            Q(producto__clase__icontains=query)
+        ).select_related('producto')[:10]  # Limitar a 10 resultados
         
-        validated_params = validation_result['validated_params']
+        resultados = []
+        for item in productos:
+            resultados.append({
+                'id': item.id,
+                'producto_id': item.producto.product_id,
+                'nombre_producto': item.producto.nombre_producto,
+                'clase': item.producto.clase,
+                'precio_unitario': float(item.producto.precio_unitario),
+                'stock': item.stock,
+                'fecha_vencimiento': item.producto.fecha_vencimiento.strftime('%Y-%m-%d')
+            })
         
-        # Extraer query y filtros
-        query = validated_params.get('query')
-        filters = {k: v for k, v in validated_params.items() if k != 'query'}
-        
-        # Realizar búsqueda
-        page = filters.pop('page', 1)
-        per_page = filters.pop('per_page', 10)
-        
-        result = search_manager.search_products(query, filters, page, per_page)
-        return JsonResponse(result)
-        
-    except Empleado.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Empleado no encontrado'}, status=404)
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def api_get_product_details(request, producto_id):
-    """
-    API para obtener detalles de un producto específico
-    """
-    empleado_dni = request.session.get('dni')
-    if not empleado_dni:
-        return JsonResponse({'success': False, 'error': 'No autenticado'}, status=401)
-    
-    try:
-        empleado = Empleado.objects.get(dni=empleado_dni)
-        inventory_manager = InventoryManager(empleado.farmacia.id)
-        
-        result = inventory_manager.get_product_details(producto_id)
-        return JsonResponse(result)
+        return JsonResponse({
+            'success': True,
+            'data': resultados,
+            'total': len(resultados)
+        })
         
     except Empleado.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Empleado no encontrado'}, status=404)
@@ -151,124 +89,9 @@ def api_get_product_details(request, producto_id):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def api_process_sale(request):
+def api_procesar_venta_simple(request):
     """
-    API para procesar una venta
-    """
-    
-
-    empleado_dni = request.session.get('dni')
-    print(empleado_dni)
-    if not empleado_dni:
-        return JsonResponse({'success': False, 'error': 'No autenticado'}, status=401)
-    
-    try:
-        # Parsear datos JSON
-        
-        data = json.loads(request.body)
-        
-        # Validar datos de entrada
-        validation_manager = ValidationManager(empleado_dni)
-        validation_result = validation_manager.validate_sale_data(data)
-        
-        if not validation_result['valid']:
-            return JsonResponse({
-                'success': False, 
-                'errors': validation_result['errors']
-            }, status=400)
-        
-        validated_data = validation_result['validated_data']
-        
-        # Validar stock antes de procesar
-        stock_validation = validation_manager.validate_stock_availability(
-            validated_data['producto_id'], 
-            validated_data['cantidad']
-        )
-        
-        if not stock_validation['valid']:
-            return JsonResponse({
-                'success': False, 
-                'error': stock_validation['error']
-            }, status=400)
-        
-        # Procesar venta
-        sales_manager = SalesManager(empleado_dni)
-        result = sales_manager.process_sale(
-            validated_data['producto_id'],
-            validated_data['cantidad'],
-            validated_data['tipo_comprobante']
-        )
-        
-        if result['success']:
-            return JsonResponse(result, status=201)
-        else:
-            return JsonResponse(result, status=400)
-        
-    except json.JSONDecodeError:
-        return JsonResponse({'success': False, 'error': 'Datos JSON inválidos'}, status=400)
-    except Empleado.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Empleado no encontrado'}, status=404)
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def api_validate_sale(request):
-    """
-    API para validar una venta antes de procesarla
-    """
-    empleado_dni = request.session.get('dni')
-    if not empleado_dni:
-        return JsonResponse({'success': False, 'error': 'No autenticado'}, status=401)
-    
-    try:
-        data = json.loads(request.body)
-        
-        sales_manager = SalesManager(empleado_dni)
-        result = sales_manager.validate_sale_data(
-            data.get('producto_id'),
-            data.get('cantidad')
-        )
-        
-        return JsonResponse(result)
-        
-    except json.JSONDecodeError:
-        return JsonResponse({'success': False, 'error': 'Datos JSON inválidos'}, status=400)
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def api_get_sales_history(request):
-    """
-    API para obtener el historial de ventas del empleado
-    """
-    empleado_dni = request.session.get('dni')
-    if not empleado_dni:
-        return JsonResponse({'success': False, 'error': 'No autenticado'}, status=401)
-    
-    try:
-        sales_manager = SalesManager(empleado_dni)
-        
-        # Obtener parámetros
-        days = int(request.GET.get('days', 30))
-        page = int(request.GET.get('page', 1))
-        per_page = int(request.GET.get('per_page', 10))
-        
-        result = sales_manager.get_sales_history(days, page, per_page)
-        return JsonResponse(result)
-        
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def api_get_suggestions(request):
-    """
-    API para obtener sugerencias de búsqueda
+    API simplificada para procesar una venta
     """
     empleado_dni = request.session.get('dni')
     if not empleado_dni:
@@ -276,25 +99,91 @@ def api_get_suggestions(request):
     
     try:
         empleado = Empleado.objects.get(dni=empleado_dni)
-        search_manager = SearchManager(empleado.farmacia.id)
+        data = json.loads(request.body)
         
-        query = request.GET.get('q', '')
-        limit = int(request.GET.get('limit', 10))
+        producto_id = data.get('producto_id')
+        cantidad = int(data.get('cantidad', 0))
+        tipo_comprobante = data.get('tipo_comprobante', 'boleta')
         
-        result = search_manager.get_search_suggestions(query, limit)
-        return JsonResponse(result)
+        # Validaciones básicas
+        if not producto_id or cantidad <= 0:
+            return JsonResponse({'success': False, 'error': 'Datos inválidos'}, status=400)
+        
+        # Buscar el producto en el inventario
+        try:
+            inventario_item = InventarioFarmacia.objects.select_related('producto').get(
+                farmacia_id=empleado.farmacia.id,
+                producto__product_id=producto_id
+            )
+        except InventarioFarmacia.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Producto no encontrado'}, status=404)
+        
+        # Verificar stock
+        if inventario_item.stock < cantidad:
+            return JsonResponse({
+                'success': False, 
+                'error': f'Stock insuficiente. Disponible: {inventario_item.stock}'
+            }, status=400)
+        
+        # Calcular totales
+        precio_unitario = float(inventario_item.producto.precio_unitario)
+        subtotal = precio_unitario * cantidad
+        igv = subtotal * 0.18
+        total = subtotal + igv
+        
+        # Procesar la venta en una transacción
+        with transaction.atomic():
+            # Actualizar stock
+            inventario_item.stock -= cantidad
+            inventario_item.save()
+            
+            # Crear registro de venta
+            today = date.today()
+            
+            # Generar código de venta único
+            ultimo_codigo = Venta.objects.aggregate(max_codigo=Max('codigo_venta'))['max_codigo'] or 0
+            nuevo_codigo = ultimo_codigo + 1
+            
+            venta = Venta.objects.create(
+                codigo_venta=nuevo_codigo,
+                producto=inventario_item.producto,
+                empleado=empleado,
+                quantity=cantidad,
+                dia=today.day,
+                month=today.strftime('%B'),
+                year=today.year,
+                sales=subtotal,
+                igv=igv,
+                total=total,
+                moneda='PEN',
+                estado='completada',
+                tipo_comp=tipo_comprobante
+            )
+        
+        return JsonResponse({
+            'success': True,
+            'data': {
+                'codigo_venta': nuevo_codigo,
+                'producto': inventario_item.producto.nombre_producto,
+                'cantidad': cantidad,
+                'total': total,
+                'stock_restante': inventario_item.stock
+            }
+        }, status=201)
         
     except Empleado.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Empleado no encontrado'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Datos JSON inválidos'}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 @csrf_exempt
 @require_http_methods(["GET"])
-def api_search_by_barcode(request, barcode):
+def api_resumen_diario_simple(request):
     """
-    API para búsqueda por código de barras
+    API para obtener resumen de ventas del día actual
     """
     empleado_dni = request.session.get('dni')
     if not empleado_dni:
@@ -302,42 +191,34 @@ def api_search_by_barcode(request, barcode):
     
     try:
         empleado = Empleado.objects.get(dni=empleado_dni)
-        search_manager = SearchManager(empleado.farmacia.id)
+        today = date.today()
         
-        result = search_manager.search_by_barcode(barcode)
-        return JsonResponse(result)
+        # Obtener ventas del día del empleado
+        ventas_hoy = Venta.objects.filter(
+            empleado=empleado,
+            dia=today.day,
+            month=today.strftime('%B'),
+            year=today.year
+        )
+        
+        # Calcular estadísticas
+        total_ventas = ventas_hoy.count()
+        total_ingresos = ventas_hoy.aggregate(Sum('total'))['total__sum'] or 0
+        total_productos = ventas_hoy.aggregate(Sum('quantity'))['quantity__sum'] or 0
+        promedio_venta = total_ingresos / total_ventas if total_ventas > 0 else 0
+        
+        return JsonResponse({
+            'success': True,
+            'data': {
+                'total_sales': total_ventas,
+                'total_revenue': float(total_ingresos),
+                'total_products': total_productos,
+                'average_sale': float(promedio_venta)
+            }
+        })
         
     except Empleado.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Empleado no encontrado'}, status=404)
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def api_get_daily_summary(request):
-    """
-    API para obtener resumen de ventas del día
-    """
-    empleado_dni = request.session.get('dni')
-    if not empleado_dni:
-        return JsonResponse({'success': False, 'error': 'No autenticado'}, status=401)
-    
-    try:
-        sales_manager = SalesManager(empleado_dni)
-        
-        # Obtener fecha específica si se proporciona
-        date_str = request.GET.get('date')
-        date = None
-        if date_str:
-            from datetime import datetime
-            date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        
-        result = sales_manager.get_daily_sales_summary(date)
-        return JsonResponse(result)
-        
-    except ValueError:
-        return JsonResponse({'success': False, 'error': 'Formato de fecha inválido'}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 

@@ -5,22 +5,16 @@ from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
 
 from farmacia_app.view.empleado_views import (
-    empleado_dashboard,
-    api_get_inventory,
-    api_search_products,
-    api_get_product_details,
-    api_process_sale,
-    api_validate_sale,
-    api_get_sales_history,
-    api_get_suggestions,
-    api_search_by_barcode,
-    api_get_daily_summary
+    empleado_dashboard_simple,
+    api_buscar_medicamento,
+    api_procesar_venta_simple,
+    api_resumen_diario_simple
 )
 
 
 urlpatterns = [
 
-    path('', lambda request: redirect('login')),
+   path('', lambda request: redirect('login')),
     path('login/', views.login_view, name='login'),
 
     path('ajax/prediccion/', views.prediccion_producto_ajax, name='prediccion_producto_ajax'),
@@ -28,27 +22,12 @@ urlpatterns = [
     path('ajax/ranking-empleados-mes-anio/', views.ranking_empleados_mes_anio, name='ranking_empleados_mes_anio'),
 
     path('dashboard/', views.dashboard_view, name='dashboard'),
-    path('empleado/dashboard/', views.empleado_dashboard, name='empleado_dashboard'),
+    path('empleado/dashboard/', empleado_dashboard_simple, name='empleado_dashboard'),
     path('logout/', views.logout_view, name='logout'),
 
-     # NUEVAS URLs para empleado mejorado
-    path('empleado/dashboard/', empleado_dashboard, name='empleado_dashboard'),
-    
-    # APIs de inventario
-    path('api/empleado/inventario/', api_get_inventory, name='api_empleado_inventario'),
-    path('api/empleado/buscar/', api_search_products, name='api_empleado_buscar'),
-    path('api/empleado/producto/<str:producto_id>/', api_get_product_details, name='api_empleado_producto'),
-    
-    # APIs de ventas
-    path('api/empleado/venta/', api_process_sale, name='api_empleado_venta'),
-    path('api/empleado/validar-venta/', api_validate_sale, name='api_empleado_validar_venta'),
-    path('api/empleado/historial/', api_get_sales_history, name='api_empleado_historial'),
-    path('api/empleado/resumen-diario/', api_get_daily_summary, name='api_empleado_resumen_diario'),
-    
-    # APIs de búsqueda
-    path('api/empleado/sugerencias/', api_get_suggestions, name='api_empleado_sugerencias'),
-    path('api/empleado/codigo/<str:barcode>/', api_search_by_barcode, name='api_empleado_codigo'),
-    path('compras/', views.compras_view, name='compras'),
-    path('compras/', views.listar_compras, name='listar_compras')
+     # URLs simplificadas para empleado
+    path('api/empleado/buscar/', api_buscar_medicamento, name='api_empleado_buscar_simple'),
+    path('api/empleado/procesar-venta/', api_procesar_venta_simple, name='api_empleado_procesar_venta_simple'),
+    path('api/empleado/resumen-diario/', api_resumen_diario_simple, name='api_empleado_resumen_diario_simple'),
 ]
     

@@ -9,10 +9,12 @@ from datetime import date
 from collections import defaultdict
 from django.http import JsonResponse
 from dateutil.relativedelta import relativedelta
-from datetime import datetime  # asegúrate de tener esta importación arriba
+ asegúrate de tener esta importación arriba
 from django.utils.timezone import now
 from django.db.models import Sum
 import calendar
+from datetime import datetime, timedelta
+
 
 
 @login_required(login_url='login')
@@ -374,15 +376,6 @@ def compras_view(request):
                     precio_unitarioC=precio_unitario,
                     total_compra=total_compra,
                 )
-                inventario, creado = InventarioFarmacia.objects.get_or_create(
-                    farmacia_id=farmacia_id,
-                    producto_id=producto_id,
-                    defaults={'stock': cantidad}
-                )
-
-                if not creado:
-                    inventario.stock += cantidad
-                    inventario.save()
 
                 return JsonResponse({
                     "status": "success",
@@ -402,9 +395,8 @@ def compras_view(request):
     # Para GET, mostrar la página con el formulario
     farmacias = Farmacia.objects.all()
     productos = Producto.objects.all()
-    compras = Compra.objects.all().order_by('-fecha_compra')[:10]
+    compras = Compra.objects.all().order_by('-fecha_compra')
     print("Compras en template:", [c.id for c in compras])
-    
     return render(request, "inventario/componentes/compras.html", {
         "farmacias": farmacias,
         "productos": productos,
@@ -413,6 +405,7 @@ def compras_view(request):
 def listar_compras(request):
     compras = Compra.objects.all().select_related("producto", "farmacia").order_by("-fecha_compra")
     return render(request, 'compras/listado.html', {'compras': compras})
+
 
 
 
@@ -483,3 +476,57 @@ def ventas_por_farmacia(request):
         })
 
     return JsonResponse({'data': data})
+
+def api_caducidad_view(request):
+    fecha_limite = timezone.now().date() + timedelta(days=30)
+    productos_proximos_vencer = Producto.objects.filter(
+        fecha_vencimiento__lte=fecha_limite
+    ).order_by('fecha_vencimiento')
+
+    productos_data = []
+    for producto in productos_proximos_vencer:
+        dias_restantes = (producto.fecha_vencimiento - timezone.now().date()).days
+        productos_data.append({
+            'product_id': producto.product_id,
+            'nombre_producto': producto.nombre_producto,
+            'clase': producto.clase,
+            'precio_unitario': float(producto.precio_unitario),
+            'fecha_vencimiento': producto.fecha_vencimiento.strftime('%Y-%m-%d'),
+            'dias_restantes': dias_restantes,
+        })
+
+    return JsonResponse({'productos_caducidad': productos_data})
+
+
+def reducir_precio_view(request, product_id):
+    if request.method == 'POST':
+        try:
+            producto = Producto.objects.get(product_id=product_id)
+            hoy = timezone.now().date()
+            dias_para_vencer = (producto.fecha_vencimiento - hoy).days
+
+            if dias_para_vencer <= 30:
+                # Reducir 50% si quedan 30 días o menos
+                producto.precio_unitario *= 0.5
+            elif dias_para_vencer <= 60:
+                # Reducir 25% si quedan entre 31 y 60 días
+                producto.precio_unitario *= 0.75
+            else:
+                # No reducir si quedan más de 60 días
+                return JsonResponse({
+                    "status": "info",
+                    "message": "El producto no cumple los criterios para reducción de precio."
+                })
+
+            producto.save()
+            return JsonResponse({
+                "status": "success",
+                "message": f"Precio de {producto.nombre_producto} reducido a ${producto.precio_unitario:.2f}"
+            })
+
+        except Producto.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Producto no encontrado."}, status=404)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    return JsonResponse({"status": "error", "message": "Método no permitido."}, status=405)
+

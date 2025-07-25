@@ -37,6 +37,11 @@ def dashboard_view(request):
         {'tipo': 'warning', 'mensaje': 'Próximo a vencer: Ibuprofeno 400mg', 'tiempo': 'Hace 4 horas'},
         {'tipo': 'info', 'mensaje': 'Predicción: Aumentar stock de Vitamina C', 'tiempo': 'Hace 6 horas'},
     ]
+
+    # Añadir los últimos 5 años incluyendo el actual
+    año_actual = datetime.now().year
+    años_disponibles = list(range(año_actual, año_actual - 5, -1))  # [2025, 2024, 2023, 2022, 2021]
+
     ctx = {
         'seccion': seccion,
         'farmacias': farmacias,
@@ -46,61 +51,56 @@ def dashboard_view(request):
         'alertas': alertas,
         'today': timezone.now().date(),
         'compra_editar': None,
-        
+        'años_disponibles': años_disponibles,
     }
 
+    # Sección de compras
     if seccion == 'compras':
         compras = Compra.objects.order_by('-fecha_compra', '-id')
-        ctx.update({
-            'compras_recientes': compras,
-        })
+        ctx['compras_recientes'] = compras
 
         compra_id = request.GET.get('editar')
         if compra_id:
             ctx['compra_editar'] = get_object_or_404(Compra, id=compra_id)
 
-    # Manejo POST
-    if request.method == 'POST' and seccion == 'compras':
-        accion = request.POST.get('accion')
-        if accion == 'nueva':
-            f = get_object_or_404(Farmacia, id=request.POST['farmacia'])
-            p = get_object_or_404(Producto, id=request.POST['producto'])
-            c = int(request.POST['cantidad'])
-            pu = float(request.POST['precio_unitarioC'])
-            fc = request.POST.get('fecha_compra') or timezone.now().date()
+        # POST para compras
+        if request.method == 'POST':
+            accion = request.POST.get('accion')
+            if accion == 'nueva':
+                f = get_object_or_404(Farmacia, id=request.POST['farmacia'])
+                p = get_object_or_404(Producto, id=request.POST['producto'])
+                c = int(request.POST['cantidad'])
+                pu = float(request.POST['precio_unitarioC'])
+                fc = request.POST.get('fecha_compra') or timezone.now().date()
 
-            Compra.objects.create(
-                farmacia=f,
-                producto=p,
-                proveedor=request.POST['proveedor'],
-                cantidad=c,
-                precio_unitarioC=pu,
-                fecha_compra=fc,
-                total_compra=c * pu
-            )
+                Compra.objects.create(
+                    farmacia=f,
+                    producto=p,
+                    proveedor=request.POST['proveedor'],
+                    cantidad=c,
+                    precio_unitarioC=pu,
+                    fecha_compra=fc,
+                    total_compra=c * pu
+                )
 
-        elif accion == 'editar':
-            comp = get_object_or_404(Compra, id=request.POST['compra_id'])
-            comp.farmacia = get_object_or_404(Farmacia, id=request.POST['farmacia'])
-            comp.producto = get_object_or_404(Producto, id=request.POST['producto'])
-            comp.proveedor = request.POST['proveedor']
-            comp.cantidad = int(request.POST['cantidad'])
-            comp.precio_unitarioC = float(request.POST['precio_unitarioC'])
-            comp.fecha_compra = request.POST.get('fecha_compra') or comp.fecha_compra
-            comp.total_compra = comp.cantidad * comp.precio_unitarioC
-            comp.save()
+            elif accion == 'editar':
+                comp = get_object_or_404(Compra, id=request.POST['compra_id'])
+                comp.farmacia = get_object_or_404(Farmacia, id=request.POST['farmacia'])
+                comp.producto = get_object_or_404(Producto, id=request.POST['producto'])
+                comp.proveedor = request.POST['proveedor']
+                comp.cantidad = int(request.POST['cantidad'])
+                comp.precio_unitarioC = float(request.POST['precio_unitarioC'])
+                comp.fecha_compra = request.POST.get('fecha_compra') or comp.fecha_compra
+                comp.total_compra = comp.cantidad * comp.precio_unitarioC
+                comp.save()
 
-        elif accion == 'eliminar':
-            comp = get_object_or_404(Compra, id=request.POST['compra_id'])
-            comp.delete()
+            elif accion == 'eliminar':
+                comp = get_object_or_404(Compra, id=request.POST['compra_id'])
+                comp.delete()
 
-        return redirect(f"{request.path}?seccion=compras")
+            return redirect(f"{request.path}?seccion=compras")
 
     return render(request, 'inventario/dashboard.html', ctx)
-
-
-
-
 
 def login_view(request):
     if request.method == 'POST':

@@ -701,15 +701,30 @@ document.addEventListener("DOMContentLoaded", function () {
     const filtro = document.getElementById("filtroFarmacia");
     const botonBuscar = document.getElementById("btnBuscarInventario");
 
-    function cargarInventario(farmaciaId = "todas") {
-        fetch(`/inventario/filtrado/?farmacia_id=${farmaciaId}`)
+    function cargarInventario() {
+        const clase = document.getElementById("claseFiltro").value;
+        const precioMin = document.getElementById("precioMin").value;
+        const precioMax = document.getElementById("precioMax").value;
+        const stockMin = document.getElementById("stockMin").value;
+        const stockMax = document.getElementById("stockMax").value;
+        const farmaciaId = filtro.value;
+
+        const params = new URLSearchParams({
+            farmacia_id: farmaciaId,
+            clase: clase,
+            precio_min: precioMin,
+            precio_max: precioMax,
+            stock_min: stockMin,
+            stock_max: stockMax
+        });
+
+        fetch(`/inventario/filtrado/?${params.toString()}`)
             .then(res => res.json())
             .then(data => {
                 const cuerpo = document.getElementById("cuerpoInventario");
                 cuerpo.innerHTML = "";
 
                 if (data.inventario.length === 0) {
-                    console.log("✔️ Búsqueda completada: sin resultados.");
                     cuerpo.innerHTML = `<tr><td colspan="6" class="text-center">No hay productos en inventario</td></tr>`;
                     return;
                 }
@@ -725,20 +740,16 @@ document.addEventListener("DOMContentLoaded", function () {
                             <td>${item.vencimiento}</td>
                         </tr>`;
                 });
-
-                console.log("✔️ Inventario cargado correctamente para la farmacia ID:", farmaciaId);
             })
             .catch(err => {
                 console.error("❌ Error al cargar inventario:", err);
             });
     }
 
-    // Buscar cuando se hace clic
-    botonBuscar.addEventListener("click", function () {
-        const farmaciaSeleccionada = filtro.value;
-        cargarInventario(farmaciaSeleccionada);
-    });
+    botonBuscar.addEventListener("click", cargarInventario);
 });
+
+
 
 // Export functions for potential use in other scripts
 window.InventoryApp = {

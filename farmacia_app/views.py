@@ -23,13 +23,14 @@ def dashboard_view(request):
 
     farmacias = Farmacia.objects.all()
     productos = Producto.objects.all()
+    clases_disponibles = Producto.objects.values_list('clase', flat=True).distinct()
     inventario = InventarioFarmacia.objects.select_related('producto').all()[:10]
 
     stats = {
         'total_productos': Producto.objects.count(),
         'stock_bajo': InventarioFarmacia.objects.filter(stock__lt=20).count(),
         'proximos_vencer': Producto.objects.filter(fecha_vencimiento__lt='2025-12-31').count(),
-        'ventas_mes': 12450.00,
+        'ventas_mes': 12450.00,  # Puedes calcular esto dinámicamente si gustas
     }
 
     alertas = [
@@ -38,7 +39,6 @@ def dashboard_view(request):
         {'tipo': 'info', 'mensaje': 'Predicción: Aumentar stock de Vitamina C', 'tiempo': 'Hace 6 horas'},
     ]
 
-    # Añadir los últimos 5 años incluyendo el actual
     año_actual = datetime.now().year
     años_disponibles = list(range(año_actual, año_actual - 5, -1))  # [2025, 2024, 2023, 2022, 2021]
 
@@ -46,6 +46,7 @@ def dashboard_view(request):
         'seccion': seccion,
         'farmacias': farmacias,
         'productos': productos,
+        'clases_disponibles': clases_disponibles,
         'inventario': inventario,
         'stats_dash': stats,
         'alertas': alertas,
@@ -63,9 +64,9 @@ def dashboard_view(request):
         if compra_id:
             ctx['compra_editar'] = get_object_or_404(Compra, id=compra_id)
 
-        # POST para compras
         if request.method == 'POST':
             accion = request.POST.get('accion')
+
             if accion == 'nueva':
                 f = get_object_or_404(Farmacia, id=request.POST['farmacia'])
                 p = get_object_or_404(Producto, id=request.POST['producto'])
@@ -413,20 +414,41 @@ def listar_compras(request):
 
 def inventario_filtrado(request):
     farmacia_id = request.GET.get('farmacia_id')
-    inventario_qs = InventarioFarmacia.objects.select_related('farmacia', 'producto')
+    clase = request.GET.get('clase')
+    precio_min = request.GET.get('precio_min')
+    precio_max = request.GET.get('precio_max')
+    stock_min = request.GET.get('stock_min')
+    stock_max = request.GET.get('stock_max')
+    vencimiento_max = request.GET.get('vencimiento_max')
+
+    inventario_qs = InventarioFarmacia.objects.select_related('producto', 'farmacia')
 
     if farmacia_id and farmacia_id != 'todas':
         inventario_qs = inventario_qs.filter(farmacia_id=farmacia_id)
+    if clase:
+        inventario_qs = inventario_qs.filter(producto__clase__icontains=clase)
+    if precio_min:
+        inventario_qs = inventario_qs.filter(producto__precio_unitario__gte=precio_min)
+    if precio_max:
+        inventario_qs = inventario_qs.filter(producto__precio_unitario__lte=precio_max)
+    if stock_min:
+        inventario_qs = inventario_qs.filter(stock__gte=stock_min)
+    if stock_max:
+        inventario_qs = inventario_qs.filter(stock__lte=stock_max)
+    if vencimiento_max:
+        try:
+            fecha_limite = datetime.strptime(vencimiento_max, "%Y-%m-%d").date()
+            inventario_qs = inventario_qs.filter(producto__fecha_vencimiento__lte=fecha_limite)
+        except ValueError:
+            pass  # si la fecha no es válida, ignoramos el filtro
 
-    data = []
-    for item in inventario_qs:
-        data.append({
-            'farmacia': item.farmacia.nombre_farmacia,
-            'producto': item.producto.nombre_producto,
-            'clase': item.producto.clase,
-            'precio': item.producto.precio_unitario,
-            'stock': item.stock,
-            'vencimiento': item.producto.fecha_vencimiento.strftime('%Y-%m-%d'),
-        })
+    data = [{
+        'farmacia': i.farmacia.nombre_farmacia,
+        'producto': i.producto.nombre_producto,
+        'clase': i.producto.clase,
+        'precio': float(i.producto.precio_unitario),
+        'stock': i.stock,
+        'vencimiento': i.producto.fecha_vencimiento.strftime('%Y-%m-%d') if i.producto.fecha_vencimiento else '',
+    } for i in inventario_qs]
 
     return JsonResponse({'inventario': data})

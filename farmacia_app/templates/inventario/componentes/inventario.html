@@ -2,7 +2,7 @@
 <section id="inventario" class="content-section">
     <h2 class="mb-4">Inventario por Farmacia</h2>
   
-    <!-- Filtro por farmacia y botón -->
+    <!-- Filtro por farmacia -->
     <div class="mb-3 d-flex align-items-center gap-3">
       <label for="filtroFarmacia" class="form-label">Filtrar por Farmacia:</label>
       <select id="filtroFarmacia" class="form-select" style="width: auto;">
@@ -14,7 +14,31 @@
       <button id="btnBuscarInventario" class="btn btn-primary" type="button">Buscar</button>
     </div>
   
-    <!-- Tabla de inventario -->
+    <!-- Filtros adicionales -->
+    <div class="row mb-3">
+      <div class="col-md-2">
+        <select id="claseFiltro" class="form-select">
+          <option value="">Todas las clases</option>
+          {% for clase in clases_disponibles %}
+            <option value="{{ clase }}">{{ clase }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <input type="number" id="precioMin" class="form-control" placeholder="Precio mínimo">
+      </div>
+      <div class="col-md-2">
+        <input type="number" id="precioMax" class="form-control" placeholder="Precio máximo">
+      </div>
+      <div class="col-md-2">
+        <input type="number" id="stockMin" class="form-control" placeholder="Stock mínimo">
+      </div>
+      <div class="col-md-2">
+        <input type="number" id="stockMax" class="form-control" placeholder="Stock máximo">
+      </div>
+    </div>
+  
+    <!-- Tabla -->
     <div class="table-responsive">
       <table class="table table-bordered table-striped" id="tablaInventario">
         <thead class="table-primary">
@@ -28,7 +52,7 @@
           </tr>
         </thead>
         <tbody id="cuerpoInventario">
-          <!-- Los datos serán cargados por JS -->
+          <!-- Datos cargados por JS -->
         </tbody>
       </table>
     </div>

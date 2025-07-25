@@ -1,13 +1,13 @@
 import pandas as pd
 from sqlalchemy import create_engine, text
-
-# Parámetros de conexión desde DataGrip
-usuario = 'postgres'
-password = '123456'  # 👈 reemplaza esto por tu contraseña real
-host = 'localhost'
-puerto = '5432'
-nombre_bd = 'farm'
-
+from dotenv import load_dotenv
+import os
+load_dotenv()
+nombre_bd = os.getenv('DB_NAME')
+usuario = os.getenv('DB_USER')
+password = os.getenv('DB_PASSWORD')
+host = os.getenv('DB_HOST')
+puerto = os.getenv('DB_PORT')
 # Crear motor de conexión
 engine = create_engine(f'postgresql+psycopg2://{usuario}:{password}@{host}:{puerto}/{nombre_bd}')
 

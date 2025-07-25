@@ -4,34 +4,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Empleado - {{ empleado.farmacia.nombre_farmacia }}</title>
-    <link rel="stylesheet" href="{% static 'empleado/css/empleado_dashboard.css' %}">
+    <title>Sistema de Ventas - {{ empleado.farmacia.nombre_farmacia }}</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-</head>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-section {
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-btn {
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #5a67d8;
+        }
+
+        .product-result {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .product-result.show {
+            display: block;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .sale-form {
+            margin-top: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .sale-summary {
+            background: #f0fff4;
+            border: 1px solid #9ae6b4;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .sale-summary.show {
+            display: block;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-row.total {
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-top: 1px solid #9ae6b4;
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .process-sale-btn {
+            width: 100%;
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.3s;
+        }
+
+        .process-sale-btn:hover {
+            background: #38a169;
+        }
+
+        .process-sale-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .daily-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left: 4px solid #48bb78;
+        }
+
+        .toast.error {
+            border-left: 4px solid #f56565;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                padding: 0 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
 
 <body>
     <!-- Header -->
     <header class="header">
         <div class="header-content">
-            <div class="header-left">
+            <div>
                 <h1 class="header-title">
                     <i class="fas fa-pills"></i>
                     {{ empleado.farmacia.nombre_farmacia }}
                 </h1>
-                <span class="header-subtitle">Sistema de Inventario</span>
+                <p>Sistema de Ventas Simplificado</p>
             </div>
-            <div class="header-right">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-details">
-                        <span class="user-name">{{ empleado.nombre }} {{ empleado.apellido }}</span>
-                        <span class="user-role">Empleado</span>
-                    </div>
-                </div>
+            <div class="user-info">
+                <span>{{ empleado.nombre }} {{ empleado.apellido }}</span>
                 <button class="logout-btn" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i>
                     Cerrar Sesión
@@ -41,354 +321,304 @@
     </header>
 
     <!-- Main Content -->
-    <main class="main-content">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <nav class="sidebar-nav">
-                <ul class="nav-list">
-                    <li class="nav-item active">
-                        <a href="#" class="nav-link" data-section="inventory">
-                            <i class="fas fa-boxes"></i>
-                            <span>Inventario</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" data-section="sales">
-                            <i class="fas fa-cash-register"></i>
-                            <span>Ventas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" data-section="history">
-                            <i class="fas fa-history"></i>
-                            <span>Historial</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" data-section="reports">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Reportes</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+    <div class="main-container">
+        <!-- Búsqueda y Venta -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-search"></i>
+                Buscar y Vender Medicamento
+            </h2>
             
-            <!-- Quick Stats -->
-            <div class="quick-stats">
-                <h3 class="stats-title">Resumen Rápido</h3>
-                <div class="stat-item">
-                    <div class="stat-icon">
-                        <i class="fas fa-cubes"></i>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-value" id="total-products">{{ inventory_summary.total_products|default:0 }}</span>
-                        <span class="stat-label">Productos</span>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon critical">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-value" id="low-stock-count">{{ low_stock_count|default:0 }}</span>
-                        <span class="stat-label">Stock Bajo</span>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-value" id="inventory-value">S/. {{ inventory_summary.total_inventory_value|default:0|floatformat:2 }}</span>
-                        <span class="stat-label">Valor Total</span>
-                    </div>
+            <!-- Búsqueda -->
+            <div class="search-section">
+                <input type="text" id="search-input" class="search-input" 
+                       placeholder="Buscar medicamento por nombre o código...">
+                <button class="search-btn" onclick="searchProduct()">
+                    <i class="fas fa-search"></i>
+                    Buscar Medicamento
+                </button>
+            </div>
+
+            <!-- Resultado de búsqueda -->
+            <div id="product-result" class="product-result">
+                <div class="product-name" id="product-name"></div>
+                <div class="product-details">
+                    <div>Código: <span id="product-code"></span></div>
+                    <div>Precio: S/. <span id="product-price"></span></div>
+                    <div>Stock: <span id="product-stock"></span></div>
+                    <div>Clase: <span id="product-class"></span></div>
                 </div>
             </div>
-        </aside>
 
-        <!-- Content Area -->
-        <div class="content-area">
-            <!-- Inventory Section -->
-            <section id="inventory-section" class="content-section active">
-                <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="fas fa-boxes"></i>
-                        Gestión de Inventario
-                    </h2>
-                    <div class="section-actions">
-                        <button class="btn btn-primary" onclick="refreshInventory()">
-                            <i class="fas fa-sync-alt"></i>
-                            Actualizar
-                        </button>
-                    </div>
+            <!-- Formulario de venta -->
+            <div class="sale-form">
+                <div class="form-group">
+                    <label class="form-label" for="quantity">Cantidad a vender</label>
+                    <input type="number" id="quantity" class="form-input" min="1" 
+                           placeholder="Ingrese la cantidad" onchange="calculateTotal()">
                 </div>
 
-                <!-- Search and Filters -->
-                {% include 'empleado/components/search_form.html' %}
+                <div class="form-group">
+                    <label class="form-label" for="receipt-type">Tipo de comprobante</label>
+                    <select id="receipt-type" class="form-input">
+                        <option value="boleta">Boleta</option>
+                        <option value="factura">Factura</option>
+                    </select>
+                </div>
 
-                <!-- Inventory Table -->
-                {% include 'empleado/components/inventory_table.html' %}
+                <!-- Resumen de venta -->
+                <div id="sale-summary" class="sale-summary">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">S/. 0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>IGV (18%):</span>
+                        <span id="igv">S/. 0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span id="total">S/. 0.00</span>
+                    </div>
+                </div>
 
-                <!-- Pagination -->
-                <div class="pagination-container">
-                    <div class="pagination-info">
-                        <span id="pagination-info">Mostrando 0 de 0 productos</span>
-                    </div>
-                    <div class="pagination-controls">
-                        <button class="btn btn-secondary" id="prev-page" onclick="changePage(-1)" disabled>
-                            <i class="fas fa-chevron-left"></i>
-                            Anterior
-                        </button>
-                        <span class="page-numbers" id="page-numbers"></span>
-                        <button class="btn btn-secondary" id="next-page" onclick="changePage(1)" disabled>
-                            Siguiente
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Sales Section -->
-            <section id="sales-section" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="fas fa-cash-register"></i>
-                        Punto de Venta
-                    </h2>
-                </div>
-                
-                <div class="sales-content">
-                    <div class="sales-form-container">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>Nueva Venta</h3>
-                            </div>
-                            <div class="card-body">
-                                <form id="sales-form">
-                                    <div class="form-group">
-                                        <label for="product-search">Buscar Producto</label>
-                                        <div class="search-input-container">
-                                            <input type="text" id="product-search" class="form-control" 
-                                                   placeholder="Nombre del producto o código de barras">
-                                            <button type="button" class="search-btn" onclick="searchProduct()">
-                                                <i class="fas fa-search"></i>
-                                            </button>
-                                        </div>
-                                        <div id="product-suggestions" class="suggestions-dropdown"></div>
-                                    </div>
-                                    
-                                    <div id="selected-product" class="selected-product" style="display: none;">
-                                        <div class="product-info">
-                                            <h4 id="selected-product-name"></h4>
-                                            <p id="selected-product-details"></p>
-                                            <div class="product-stock">
-                                                <span>Stock disponible: </span>
-                                                <span id="selected-product-stock" class="stock-value"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="quantity">Cantidad</label>
-                                        <input type="number" id="quantity" class="form-control" min="1" placeholder="Cantidad a vender">
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="receipt-type">Tipo de Comprobante</label>
-                                        <select id="receipt-type" class="form-control">
-                                            <option value="boleta">Boleta</option>
-                                            <option value="factura">Factura</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="sale-summary" id="sale-summary" style="display: none;">
-                                        <div class="summary-row">
-                                            <span>Subtotal:</span>
-                                            <span id="subtotal">S/. 0.00</span>
-                                        </div>
-                                        <div class="summary-row">
-                                            <span>IGV (18%):</span>
-                                            <span id="igv">S/. 0.00</span>
-                                        </div>
-                                        <div class="summary-row total">
-                                            <span>Total:</span>
-                                            <span id="total">S/. 0.00</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="form-actions">
-                                        <button type="button" class="btn btn-secondary" onclick="clearSaleForm()">
-                                            <i class="fas fa-times"></i>
-                                            Limpiar
-                                        </button>
-                                        <button type="button" class="btn btn-success" onclick="processSale()" id="process-sale-btn" disabled>
-                                            <i class="fas fa-shopping-cart"></i>
-                                            Procesar Venta
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="daily-summary-container">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>Resumen del Día</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="daily-stats">
-                                    <div class="daily-stat">
-                                        <div class="stat-icon">
-                                            <i class="fas fa-shopping-bag"></i>
-                                        </div>
-                                        <div class="stat-content">
-                                            <span class="stat-number" id="daily-sales-count">0</span>
-                                            <span class="stat-text">Ventas</span>
-                                        </div>
-                                    </div>
-                                    <div class="daily-stat">
-                                        <div class="stat-icon">
-                                            <i class="fas fa-coins"></i>
-                                        </div>
-                                        <div class="stat-content">
-                                            <span class="stat-number" id="daily-revenue">S/. 0.00</span>
-                                            <span class="stat-text">Ingresos</span>
-                                        </div>
-                                    </div>
-                                    <div class="daily-stat">
-                                        <div class="stat-icon">
-                                            <i class="fas fa-box"></i>
-                                        </div>
-                                        <div class="stat-content">
-                                            <span class="stat-number" id="daily-products-sold">0</span>
-                                            <span class="stat-text">Productos</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- History Section -->
-            <section id="history-section" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="fas fa-history"></i>
-                        Historial de Ventas
-                    </h2>
-                    <div class="section-actions">
-                        <select id="history-filter" class="form-control" onchange="loadSalesHistory()">
-                            <option value="7">Últimos 7 días</option>
-                            <option value="30" selected>Últimos 30 días</option>
-                            <option value="90">Últimos 90 días</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="history-table-container">
-                    <table class="table" id="history-table">
-                        <thead>
-                            <tr>
-                                <th>Código</th>
-                                <th>Producto</th>
-                                <th>Cantidad</th>
-                                <th>Total</th>
-                                <th>Fecha</th>
-                                <th>Estado</th>
-                                <th>Comprobante</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-table-body">
-                            <!-- Contenido dinámico -->
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="pagination-container">
-                    <div class="pagination-controls">
-                        <button class="btn btn-secondary" id="history-prev-page" onclick="changeHistoryPage(-1)" disabled>
-                            <i class="fas fa-chevron-left"></i>
-                            Anterior
-                        </button>
-                        <span class="page-numbers" id="history-page-numbers"></span>
-                        <button class="btn btn-secondary" id="history-next-page" onclick="changeHistoryPage(1)" disabled>
-                            Siguiente
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Reports Section -->
-            <section id="reports-section" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="fas fa-chart-bar"></i>
-                        Reportes y Estadísticas
-                    </h2>
-                </div>
-                
-                <div class="reports-grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Productos con Stock Bajo</h3>
-                        </div>
-                        <div class="card-body">
-                            <div id="low-stock-list">
-                                <!-- Contenido dinámico -->
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Productos Más Vendidos</h3>
-                        </div>
-                        <div class="card-body">
-                            <div id="top-products-list">
-                                <!-- Contenido dinámico -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                <button id="process-sale-btn" class="process-sale-btn" onclick="processSale()" disabled>
+                    <i class="fas fa-shopping-cart"></i>
+                    Procesar Venta
+                </button>
+            </div>
         </div>
-    </main>
 
-    <!-- Sale Modal -->
-    {% include 'empleado/components/sale_modal.html' %}
+        <!-- Resumen del día -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-chart-line"></i>
+                Resumen del Día
+            </h2>
+            
+            <div class="daily-stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="daily-sales">0</span>
+                    <span class="stat-label">Ventas</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="daily-revenue">S/. 0.00</span>
+                    <span class="stat-label">Ingresos</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="daily-products">0</span>
+                    <span class="stat-label">Productos</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="daily-avg">S/. 0.00</span>
+                    <span class="stat-label">Promedio</span>
+                </div>
+            </div>
 
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay">
-        <div class="loading-spinner">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>Cargando...</span>
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Cargando...</p>
+            </div>
         </div>
     </div>
 
-    <!-- Toast Notifications -->
-    <div id="toast-container" class="toast-container"></div>
+    <!-- Toast notifications -->
+    <div id="toast" class="toast"></div>
 
-    <!-- Scripts -->
-    <script src="{% static 'empleado/js/inventory_crud.js' %}"></script>
-    <script src="{% static 'empleado/js/sales_handler.js' %}"></script>
-    <script src="{% static 'empleado/js/search_filter.js' %}"></script>
-    <script src="{% static 'empleado/js/main_dashboard.js' %}"></script>
-    
     <script>
-        // Initialize dashboard
+        let currentProduct = null;
+
+        // Inicializar la página
         document.addEventListener('DOMContentLoaded', function() {
-            initializeDashboard();
+            loadDailySummary();
         });
-        
+
+        // Buscar producto
+        async function searchProduct() {
+            const query = document.getElementById('search-input').value.trim();
+            if (!query) {
+                showToast('Por favor ingrese un término de búsqueda', 'error');
+                return;
+            }
+
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`/api/empleado/buscar/?query=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.success && data.data.length > 0) {
+                    // Mostrar el primer resultado
+                    const product = data.data[0];
+                    displayProduct(product);
+                    currentProduct = product;
+                } else {
+                    showToast('No se encontró el medicamento', 'error');
+                    hideProduct();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error al buscar el medicamento', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Mostrar producto encontrado
+        function displayProduct(product) {
+            document.getElementById('product-name').textContent = product.nombre_producto;
+            document.getElementById('product-code').textContent = product.producto_id;
+            document.getElementById('product-price').textContent = product.precio_unitario.toFixed(2);
+            document.getElementById('product-stock').textContent = product.stock;
+            document.getElementById('product-class').textContent = product.clase;
+            
+            document.getElementById('product-result').classList.add('show');
+            document.getElementById('quantity').max = product.stock;
+            document.getElementById('quantity').value = '';
+            document.getElementById('process-sale-btn').disabled = true;
+            
+            // Limpiar resumen anterior
+            document.getElementById('sale-summary').classList.remove('show');
+        }
+
+        // Ocultar producto
+        function hideProduct() {
+            document.getElementById('product-result').classList.remove('show');
+            document.getElementById('sale-summary').classList.remove('show');
+            currentProduct = null;
+        }
+
+        // Calcular total
+        function calculateTotal() {
+            if (!currentProduct) return;
+            
+            const quantity = parseInt(document.getElementById('quantity').value);
+            if (!quantity || quantity <= 0) {
+                document.getElementById('sale-summary').classList.remove('show');
+                document.getElementById('process-sale-btn').disabled = true;
+                return;
+            }
+
+            if (quantity > currentProduct.stock) {
+                showToast('Cantidad excede el stock disponible', 'error');
+                document.getElementById('quantity').value = currentProduct.stock;
+                return;
+            }
+
+            const subtotal = currentProduct.precio_unitario * quantity;
+            const igv = subtotal * 0.18;
+            const total = subtotal + igv;
+
+            document.getElementById('subtotal').textContent = `S/. ${subtotal.toFixed(2)}`;
+            document.getElementById('igv').textContent = `S/. ${igv.toFixed(2)}`;
+            document.getElementById('total').textContent = `S/. ${total.toFixed(2)}`;
+            
+            document.getElementById('sale-summary').classList.add('show');
+            document.getElementById('process-sale-btn').disabled = false;
+        }
+
+        // Procesar venta
+        async function processSale() {
+            if (!currentProduct) return;
+            
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const receiptType = document.getElementById('receipt-type').value;
+            
+            if (!quantity || quantity <= 0) {
+                showToast('Por favor ingrese una cantidad válida', 'error');
+                return;
+            }
+
+            showLoading(true);
+            
+            try {
+                const response = await fetch('/api/empleado/procesar-venta/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        producto_id: currentProduct.producto_id,
+                        cantidad: quantity,
+                        tipo_comprobante: receiptType
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Venta procesada exitosamente', 'success');
+                    
+                    // Limpiar formulario
+                    document.getElementById('search-input').value = '';
+                    document.getElementById('quantity').value = '';
+                    hideProduct();
+                    
+                    // Actualizar resumen del día
+                    loadDailySummary();
+                } else {
+                    showToast(data.error || 'Error al procesar la venta', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error al procesar la venta', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Cargar resumen del día
+        async function loadDailySummary() {
+            try {
+                const response = await fetch('/api/empleado/resumen-diario/');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const summary = data.data;
+                    document.getElementById('daily-sales').textContent = summary.total_sales || 0;
+                    document.getElementById('daily-revenue').textContent = `S/. ${(summary.total_revenue || 0).toFixed(2)}`;
+                    document.getElementById('daily-products').textContent = summary.total_products || 0;
+                    document.getElementById('daily-avg').textContent = `S/. ${(summary.average_sale || 0).toFixed(2)}`;
+                }
+            } catch (error) {
+                console.error('Error loading daily summary:', error);
+            }
+        }
+
+        // Mostrar/ocultar loading
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            if (show) {
+                loading.classList.add('show');
+            } else {
+                loading.classList.remove('show');
+            }
+        }
+
+        // Mostrar toast
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Cerrar sesión
         function logout() {
             if (confirm('¿Está seguro que desea cerrar sesión?')) {
                 window.location.href = '{% url "logout" %}';
             }
         }
+
+        // Permitir búsqueda con Enter
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchProduct();
+            }
+        });
     </script>
 </body>
 </html>

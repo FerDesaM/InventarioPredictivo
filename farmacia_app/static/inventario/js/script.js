@@ -749,6 +749,89 @@ document.addEventListener("DOMContentLoaded", function () {
     botonBuscar.addEventListener("click", cargarInventario);
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+    const btnVentas = document.getElementById("btnVentasPorMes");
+    const btnFiltrar = document.getElementById("btnFiltrarVentas");
+    const graficoCanvas = document.getElementById("graficoVentasFarmacia");
+
+    const selectMes = document.getElementById("selectMes");
+    const selectAnio = document.getElementById("selectAnio");
+
+    let chartFarmacias = null;
+
+    function cargarVentas(mes, anio) {
+        fetch(`/ajax/ventas-farmacia/?mes=${mes}&anio=${anio}`)
+            .then(res => res.json())
+            .then(json => {
+                const data = json.data;
+                if (data.length === 0) {
+                    graficoCanvas.style.display = 'none';
+                    return;
+                }
+
+                const labels = data.map(f => f.farmacia);
+                const valores = data.map(f => f.total_ventas);
+
+                if (chartFarmacias) chartFarmacias.destroy();
+
+                graficoCanvas.style.display = 'block';
+
+                chartFarmacias = new Chart(graficoCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: `Ventas por Farmacia (S/.) - ${mes} ${anio}`,
+                            data: valores,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => `S/ ${ctx.raw.toFixed(2)}`
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Total Vendido (S/.)' }
+                            }
+                        }
+                    }
+                });
+            });
+    }
+
+    // Al hacer clic en la tarjeta "Ventas"
+    btnVentas.addEventListener("click", () => {
+        const mes = new Date().toLocaleString('en-US', { month: 'long' });
+        const anio = new Date().getFullYear();
+
+        selectMes.value = mes;
+        selectAnio.value = anio;
+
+        cargarVentas(mes, anio);
+    });
+
+    // Al hacer clic en el botón "Filtrar"
+    btnFiltrar.addEventListener("click", () => {
+        const mes = selectMes.value;
+        const anio = selectAnio.value;
+        cargarVentas(mes, anio);
+    });
+});
+
+
+
+
+
 
 
 // Export functions for potential use in other scripts

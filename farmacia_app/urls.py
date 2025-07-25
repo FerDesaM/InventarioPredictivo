@@ -32,6 +32,8 @@ urlpatterns = [
 
     path('compras/', views.compras_view, name='compras'),
     path('inventario/filtrado/', views.inventario_filtrado, name='inventario_filtrado'),
+    path('ajax/ventas-farmacia/', views.ventas_por_farmacia, name='ventas_por_farmacia'),
     path('compras/', views.listar_compras, name='listar_compras')
+    
 ]
     

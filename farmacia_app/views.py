@@ -10,6 +10,10 @@ from collections import defaultdict
 from django.http import JsonResponse
 from dateutil.relativedelta import relativedelta
 from datetime import datetime  # asegúrate de tener esta importación arriba
+from django.utils.timezone import now
+from django.db.models import Sum
+import calendar
+
 
 @login_required(login_url='login')
 def home(request):
@@ -452,3 +456,30 @@ def inventario_filtrado(request):
     } for i in inventario_qs]
 
     return JsonResponse({'inventario': data})
+
+
+def ventas_por_farmacia(request):
+    mes = request.GET.get('mes')
+    anio = request.GET.get('anio')
+
+    from datetime import datetime
+    if not mes or not anio:
+        mes = datetime.now().strftime("%B")  # Ej: 'July'
+        anio = datetime.now().year
+
+    data = []
+    farmacias = Farmacia.objects.all()
+
+    for farmacia in farmacias:
+        total_ventas = Venta.objects.filter(
+            empleado__farmacia=farmacia,
+            month__iexact=mes,
+            year=anio
+        ).aggregate(total=Sum('total'))['total'] or 0
+
+        data.append({
+            'farmacia': farmacia.nombre_farmacia,
+            'total_ventas': round(total_ventas, 2)
+        })
+
+    return JsonResponse({'data': data})

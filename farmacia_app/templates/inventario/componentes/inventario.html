@@ -1,71 +1,60 @@
 <!-- Inventario Section -->
-        <section id="inventario" class="content-section">
-            <div class="section-header">
-                <h2>Gestión de Inventario</h2>
-                <button class="btn btn-primary">
-                    <i class="fas fa-plus"></i>
-                    Agregar Producto
-                </button>
-            </div>
-
-            <!-- Filters -->
-            <div class="filters-container">
-                <div class="filter-group">
-                    <input type="text" placeholder="Buscar producto..." class="search-input">
-                    <select class="filter-select">
-                        <option>Todas las categorías</option>
-                        <option>Analgésicos</option>
-                        <option>Antibióticos</option>
-                        <option>Vitaminas</option>
-                    </select>
-                    <select class="filter-select">
-                        <option>Todos los proveedores</option>
-                        <option>Proveedor A</option>
-                        <option>Proveedor B</option>
-                    </select>
-                </div>
-            </div>
-
-      <!-- Inventory Table -->
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Producto</th>
-                            <th>Categoría</th>
-                            <th>Stock</th>
-                            <th>Precio</th>
-                            <th>Vencimiento</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in inventario %}
-                        <tr>
-                            <td>{{ item.producto.product_id }}</td>
-                            <td>{{ item.producto.nombre_producto }}</td>
-                            <td>{{ item.producto.clase }}</td>
-                            <td class="{% if item.stock < 20 %}stock-low{% endif %}">{{ item.stock }}</td>
-                            <td>${{ item.producto.precio_unitario }}</td>
-                            <td>{{ item.producto.fecha_vencimiento }}</td>
-                            <td>
-                                {% if item.stock < 20 %}
-                                <span class="status-badge warning">Stock Bajo</span>
-                                {% elif item.producto.fecha_vencimiento < today %}
-                                <span class="status-badge danger">Vencido</span>
-                                {% else %}
-                                <span class="status-badge success">Normal</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <button class="btn-icon"><i class="fas fa-edit"></i></button>
-                                <button class="btn-icon"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </section>
+<section id="inventario" class="content-section">
+    <h2 class="mb-4">Inventario por Farmacia</h2>
+  
+    <!-- Filtro por farmacia -->
+    <div class="mb-3 d-flex align-items-center gap-3">
+      <label for="filtroFarmacia" class="form-label">Filtrar por Farmacia:</label>
+      <select id="filtroFarmacia" class="form-select" style="width: auto;">
+        <option value="todas">Todas las farmacias</option>
+        {% for farmacia in farmacias %}
+          <option value="{{ farmacia.id }}">{{ farmacia.nombre_farmacia }}</option>
+        {% endfor %}
+      </select>
+      <button id="btnBuscarInventario" class="btn btn-primary" type="button">Buscar</button>
+    </div>
+  
+    <!-- Filtros adicionales -->
+    <div class="row mb-3">
+      <div class="col-md-2">
+        <select id="claseFiltro" class="form-select">
+          <option value="">Todas las clases</option>
+          {% for clase in clases_disponibles %}
+            <option value="{{ clase }}">{{ clase }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <input type="number" id="precioMin" class="form-control" placeholder="Precio mínimo">
+      </div>
+      <div class="col-md-2">
+        <input type="number" id="precioMax" class="form-control" placeholder="Precio máximo">
+      </div>
+      <div class="col-md-2">
+        <input type="number" id="stockMin" class="form-control" placeholder="Stock mínimo">
+      </div>
+      <div class="col-md-2">
+        <input type="number" id="stockMax" class="form-control" placeholder="Stock máximo">
+      </div>
+    </div>
+  
+    <!-- Tabla -->
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped" id="tablaInventario">
+        <thead class="table-primary">
+          <tr>
+            <th>Farmacia</th>
+            <th>Producto</th>
+            <th>Clase</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Fecha de Vencimiento</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpoInventario">
+          <!-- Datos cargados por JS -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+  

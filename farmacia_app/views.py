@@ -9,6 +9,10 @@ from datetime import date
 from collections import defaultdict
 from django.http import JsonResponse
 from dateutil.relativedelta import relativedelta
+ asegúrate de tener esta importación arriba
+from django.utils.timezone import now
+from django.db.models import Sum
+import calendar
 from datetime import datetime, timedelta
 
 
@@ -25,13 +29,14 @@ def dashboard_view(request):
 
     farmacias = Farmacia.objects.all()
     productos = Producto.objects.all()
+    clases_disponibles = Producto.objects.values_list('clase', flat=True).distinct()
     inventario = InventarioFarmacia.objects.select_related('producto').all()[:10]
 
     stats = {
         'total_productos': Producto.objects.count(),
         'stock_bajo': InventarioFarmacia.objects.filter(stock__lt=20).count(),
         'proximos_vencer': Producto.objects.filter(fecha_vencimiento__lt='2025-12-31').count(),
-        'ventas_mes': 12450.00,
+        'ventas_mes': 12450.00,  # Puedes calcular esto dinámicamente si gustas
     }
 
     alertas = [
@@ -39,70 +44,70 @@ def dashboard_view(request):
         {'tipo': 'warning', 'mensaje': 'Próximo a vencer: Ibuprofeno 400mg', 'tiempo': 'Hace 4 horas'},
         {'tipo': 'info', 'mensaje': 'Predicción: Aumentar stock de Vitamina C', 'tiempo': 'Hace 6 horas'},
     ]
+
+    año_actual = datetime.now().year
+    años_disponibles = list(range(año_actual, año_actual - 5, -1))  # [2025, 2024, 2023, 2022, 2021]
+
     ctx = {
         'seccion': seccion,
         'farmacias': farmacias,
         'productos': productos,
+        'clases_disponibles': clases_disponibles,
         'inventario': inventario,
         'stats_dash': stats,
         'alertas': alertas,
         'today': timezone.now().date(),
         'compra_editar': None,
-        
+        'años_disponibles': años_disponibles,
     }
 
+    # Sección de compras
     if seccion == 'compras':
         compras = Compra.objects.order_by('-fecha_compra', '-id')
-        ctx.update({
-            'compras_recientes': compras,
-        })
+        ctx['compras_recientes'] = compras
 
         compra_id = request.GET.get('editar')
         if compra_id:
             ctx['compra_editar'] = get_object_or_404(Compra, id=compra_id)
 
-    # Manejo POST
-    if request.method == 'POST' and seccion == 'compras':
-        accion = request.POST.get('accion')
-        if accion == 'nueva':
-            f = get_object_or_404(Farmacia, id=request.POST['farmacia'])
-            p = get_object_or_404(Producto, id=request.POST['producto'])
-            c = int(request.POST['cantidad'])
-            pu = float(request.POST['precio_unitarioC'])
-            fc = request.POST.get('fecha_compra') or timezone.now().date()
+        if request.method == 'POST':
+            accion = request.POST.get('accion')
 
-            Compra.objects.create(
-                farmacia=f,
-                producto=p,
-                proveedor=request.POST['proveedor'],
-                cantidad=c,
-                precio_unitarioC=pu,
-                fecha_compra=fc,
-                total_compra=c * pu
-            )
+            if accion == 'nueva':
+                f = get_object_or_404(Farmacia, id=request.POST['farmacia'])
+                p = get_object_or_404(Producto, id=request.POST['producto'])
+                c = int(request.POST['cantidad'])
+                pu = float(request.POST['precio_unitarioC'])
+                fc = request.POST.get('fecha_compra') or timezone.now().date()
 
-        elif accion == 'editar':
-            comp = get_object_or_404(Compra, id=request.POST['compra_id'])
-            comp.farmacia = get_object_or_404(Farmacia, id=request.POST['farmacia'])
-            comp.producto = get_object_or_404(Producto, id=request.POST['producto'])
-            comp.proveedor = request.POST['proveedor']
-            comp.cantidad = int(request.POST['cantidad'])
-            comp.precio_unitarioC = float(request.POST['precio_unitarioC'])
-            comp.fecha_compra = request.POST.get('fecha_compra') or comp.fecha_compra
-            comp.total_compra = comp.cantidad * comp.precio_unitarioC
-            comp.save()
+                Compra.objects.create(
+                    farmacia=f,
+                    producto=p,
+                    proveedor=request.POST['proveedor'],
+                    cantidad=c,
+                    precio_unitarioC=pu,
+                    fecha_compra=fc,
+                    total_compra=c * pu
+                )
 
-        elif accion == 'eliminar':
-            comp = get_object_or_404(Compra, id=request.POST['compra_id'])
-            comp.delete()
+            elif accion == 'editar':
+                comp = get_object_or_404(Compra, id=request.POST['compra_id'])
+                comp.farmacia = get_object_or_404(Farmacia, id=request.POST['farmacia'])
+                comp.producto = get_object_or_404(Producto, id=request.POST['producto'])
+                comp.proveedor = request.POST['proveedor']
+                comp.cantidad = int(request.POST['cantidad'])
+                comp.precio_unitarioC = float(request.POST['precio_unitarioC'])
+                comp.fecha_compra = request.POST.get('fecha_compra') or comp.fecha_compra
+                comp.total_compra = comp.cantidad * comp.precio_unitarioC
+                comp.save()
 
-        return redirect(f"{request.path}?seccion=compras")
+            elif accion == 'eliminar':
+                comp = get_object_or_404(Compra, id=request.POST['compra_id'])
+                comp.delete()
+
+            return redirect(f"{request.path}?seccion=compras")
 
     return render(request, 'inventario/dashboard.html', ctx)
-
-
-
-
 
 def login_view(request):
     if request.method == 'POST':
@@ -400,6 +405,77 @@ def compras_view(request):
 def listar_compras(request):
     compras = Compra.objects.all().select_related("producto", "farmacia").order_by("-fecha_compra")
     return render(request, 'compras/listado.html', {'compras': compras})
+
+
+
+
+def inventario_filtrado(request):
+    farmacia_id = request.GET.get('farmacia_id')
+    clase = request.GET.get('clase')
+    precio_min = request.GET.get('precio_min')
+    precio_max = request.GET.get('precio_max')
+    stock_min = request.GET.get('stock_min')
+    stock_max = request.GET.get('stock_max')
+    vencimiento_max = request.GET.get('vencimiento_max')
+
+    inventario_qs = InventarioFarmacia.objects.select_related('producto', 'farmacia')
+
+    if farmacia_id and farmacia_id != 'todas':
+        inventario_qs = inventario_qs.filter(farmacia_id=farmacia_id)
+    if clase:
+        inventario_qs = inventario_qs.filter(producto__clase__icontains=clase)
+    if precio_min:
+        inventario_qs = inventario_qs.filter(producto__precio_unitario__gte=precio_min)
+    if precio_max:
+        inventario_qs = inventario_qs.filter(producto__precio_unitario__lte=precio_max)
+    if stock_min:
+        inventario_qs = inventario_qs.filter(stock__gte=stock_min)
+    if stock_max:
+        inventario_qs = inventario_qs.filter(stock__lte=stock_max)
+    if vencimiento_max:
+        try:
+            fecha_limite = datetime.strptime(vencimiento_max, "%Y-%m-%d").date()
+            inventario_qs = inventario_qs.filter(producto__fecha_vencimiento__lte=fecha_limite)
+        except ValueError:
+            pass  # si la fecha no es válida, ignoramos el filtro
+
+    data = [{
+        'farmacia': i.farmacia.nombre_farmacia,
+        'producto': i.producto.nombre_producto,
+        'clase': i.producto.clase,
+        'precio': float(i.producto.precio_unitario),
+        'stock': i.stock,
+        'vencimiento': i.producto.fecha_vencimiento.strftime('%Y-%m-%d') if i.producto.fecha_vencimiento else '',
+    } for i in inventario_qs]
+
+    return JsonResponse({'inventario': data})
+
+
+def ventas_por_farmacia(request):
+    mes = request.GET.get('mes')
+    anio = request.GET.get('anio')
+
+    from datetime import datetime
+    if not mes or not anio:
+        mes = datetime.now().strftime("%B")  # Ej: 'July'
+        anio = datetime.now().year
+
+    data = []
+    farmacias = Farmacia.objects.all()
+
+    for farmacia in farmacias:
+        total_ventas = Venta.objects.filter(
+            empleado__farmacia=farmacia,
+            month__iexact=mes,
+            year=anio
+        ).aggregate(total=Sum('total'))['total'] or 0
+
+        data.append({
+            'farmacia': farmacia.nombre_farmacia,
+            'total_ventas': round(total_ventas, 2)
+        })
+
+    return JsonResponse({'data': data})
 
 def api_caducidad_view(request):
     fecha_limite = timezone.now().date() + timedelta(days=30)

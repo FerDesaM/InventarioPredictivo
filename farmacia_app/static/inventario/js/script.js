@@ -697,6 +697,141 @@ function renderGraficoEmpleados(ranking) {
     });
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    const filtro = document.getElementById("filtroFarmacia");
+    const botonBuscar = document.getElementById("btnBuscarInventario");
+
+    function cargarInventario() {
+        const clase = document.getElementById("claseFiltro").value;
+        const precioMin = document.getElementById("precioMin").value;
+        const precioMax = document.getElementById("precioMax").value;
+        const stockMin = document.getElementById("stockMin").value;
+        const stockMax = document.getElementById("stockMax").value;
+        const farmaciaId = filtro.value;
+
+        const params = new URLSearchParams({
+            farmacia_id: farmaciaId,
+            clase: clase,
+            precio_min: precioMin,
+            precio_max: precioMax,
+            stock_min: stockMin,
+            stock_max: stockMax
+        });
+
+        fetch(`/inventario/filtrado/?${params.toString()}`)
+            .then(res => res.json())
+            .then(data => {
+                const cuerpo = document.getElementById("cuerpoInventario");
+                cuerpo.innerHTML = "";
+
+                if (data.inventario.length === 0) {
+                    cuerpo.innerHTML = `<tr><td colspan="6" class="text-center">No hay productos en inventario</td></tr>`;
+                    return;
+                }
+
+                data.inventario.forEach(item => {
+                    cuerpo.innerHTML += `
+                        <tr>
+                            <td>${item.farmacia}</td>
+                            <td>${item.producto}</td>
+                            <td>${item.clase}</td>
+                            <td>S/. ${item.precio.toFixed(2)}</td>
+                            <td>${item.stock}</td>
+                            <td>${item.vencimiento}</td>
+                        </tr>`;
+                });
+            })
+            .catch(err => {
+                console.error("❌ Error al cargar inventario:", err);
+            });
+    }
+
+    botonBuscar.addEventListener("click", cargarInventario);
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const btnVentas = document.getElementById("btnVentasPorMes");
+    const btnFiltrar = document.getElementById("btnFiltrarVentas");
+    const graficoCanvas = document.getElementById("graficoVentasFarmacia");
+
+    const selectMes = document.getElementById("selectMes");
+    const selectAnio = document.getElementById("selectAnio");
+
+    let chartFarmacias = null;
+
+    function cargarVentas(mes, anio) {
+        fetch(`/ajax/ventas-farmacia/?mes=${mes}&anio=${anio}`)
+            .then(res => res.json())
+            .then(json => {
+                const data = json.data;
+                if (data.length === 0) {
+                    graficoCanvas.style.display = 'none';
+                    return;
+                }
+
+                const labels = data.map(f => f.farmacia);
+                const valores = data.map(f => f.total_ventas);
+
+                if (chartFarmacias) chartFarmacias.destroy();
+
+                graficoCanvas.style.display = 'block';
+
+                chartFarmacias = new Chart(graficoCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: `Ventas por Farmacia (S/.) - ${mes} ${anio}`,
+                            data: valores,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => `S/ ${ctx.raw.toFixed(2)}`
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Total Vendido (S/.)' }
+                            }
+                        }
+                    }
+                });
+            });
+    }
+
+    // Al hacer clic en la tarjeta "Ventas"
+    btnVentas.addEventListener("click", () => {
+        const mes = new Date().toLocaleString('en-US', { month: 'long' });
+        const anio = new Date().getFullYear();
+
+        selectMes.value = mes;
+        selectAnio.value = anio;
+
+        cargarVentas(mes, anio);
+    });
+
+    // Al hacer clic en el botón "Filtrar"
+    btnFiltrar.addEventListener("click", () => {
+        const mes = selectMes.value;
+        const anio = selectAnio.value;
+        cargarVentas(mes, anio);
+    });
+});
+
+
+
+
+
 
 
 // Export functions for potential use in other scripts

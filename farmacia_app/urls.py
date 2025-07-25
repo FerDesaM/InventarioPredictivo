@@ -32,11 +32,16 @@ urlpatterns = [
     path('api/empleado/resumen-diario/', api_resumen_diario_simple, name='api_empleado_resumen_diario_simple'),
 
     path('compras/', views.compras_view, name='compras'),
+
+    path('inventario/filtrado/', views.inventario_filtrado, name='inventario_filtrado'),
+    path('ajax/ventas-farmacia/', views.ventas_por_farmacia, name='ventas_por_farmacia'),
+
     path('compras/', views.listar_compras, name='listar_compras'),
 
     path('api/caducidad/', views.api_caducidad_view, name='api_caducidad'),
     path("reducir_precio/<str:product_id>/", views.reducir_precio_view, name="reducir_precio"),
     
+
     
 ]
     
